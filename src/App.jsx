@@ -17,8 +17,8 @@ import Booking from "./pages/member/Booking";
 import Payments from "./pages/member/Payments";
 import ExerciseTypes from "./pages/member/ExerciseTypes";
 import Equipment from "./pages/member/Equipment";
-
-// ✅ NEW: Chat page
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Chat from "./pages/member/Chat";
 
 function App() {
@@ -52,6 +52,14 @@ function App() {
           path="/register"
           element={user ? <Navigate to={authedRedirectTo} replace /> : <Register />}
         />
+        <Route
+          path="/forgot-password"
+          element={user ? <Navigate to={authedRedirectTo} replace /> : <ForgotPassword />}
+        />
+        <Route
+          path="/reset-password"
+          element={user ? <Navigate to={authedRedirectTo} replace /> : <ResetPassword />}
+        />
 
         {/* Home */}
         <Route
@@ -77,8 +85,6 @@ function App() {
           <Route path="payments" element={<Payments />} />
           <Route path="exercise-types" element={<ExerciseTypes />} />
           <Route path="equipment" element={<Equipment />} />
-
-          {/* ✅ NEW: Chat route (nested => keeps Sidebar) */}
           <Route path="chat" element={<Chat />} />
         </Route>
 

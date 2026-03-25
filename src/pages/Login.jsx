@@ -102,12 +102,19 @@ export default function Login() {
           </div>
         </label>
 
+        
+
         <button
           style={{ ...AuthUI.button(loading), ...s.submitBtn }}
           disabled={loading}
         >
           {loading ? "Logging in..." : "Login"}
         </button>
+        <div style={s.forgotWrap}>
+          <Link to="/forgot-password" style={s.forgotLink}>
+            Forgot password?
+          </Link>
+        </div>
       </form>
 
       <p style={AuthUI.linkRow}>
@@ -159,6 +166,21 @@ const s = {
     border: "1px solid rgba(255,255,255,.10)",
     cursor: "pointer",
     transition: "all .15s ease",
+  },
+
+  forgotWrap: {
+    width: "100%",
+    display: "flex",
+    justifyContent: "center",
+    marginTop: 12,
+    
+  },
+
+  forgotLink: {
+    color: "#00f5d4",
+    textDecoration: "none",
+    fontSize: 14,
+    fontWeight: 800,
   },
 
   submitBtn: {

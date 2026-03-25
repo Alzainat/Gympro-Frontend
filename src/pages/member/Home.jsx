@@ -122,29 +122,7 @@ export default function Home() {
     },
   ];
 
-  const testimonials = [
-    {
-      name: "Olivia Carter",
-      role: "Member • 8 months",
-      quote:
-        "The portal feels premium and focused — booking and programs are always easy to find.",
-      score: "★★★★★",
-    },
-    {
-      name: "Daniel Reed",
-      role: "Member • 1 year",
-      quote:
-        "Everything is clean and organized. It genuinely makes the gym experience smoother.",
-      score: "★★★★★",
-    },
-    {
-      name: "Maya Johnson",
-      role: "Member • 5 months",
-      quote:
-        "Fast, modern, and simple. I love how everything I need is in one place.",
-      score: "★★★★★",
-    },
-  ];
+  
 
   const s = {
     page: {
@@ -608,41 +586,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* TESTIMONIALS */}
-        <section style={s.section}>
-          <div data-reveal>
-            <h2 style={s.sectionTitle}>What Members Say</h2>
-            <p style={s.sectionSub}>
-              Real feedback from members who love the clean and premium experience.
-            </p>
-          </div>
-
-          <div className="tGrid3" style={s.tGrid}>
-            {testimonials.map((t) => (
-              <div key={t.name} data-reveal className="hoverUp" style={s.card}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                  <div style={{ fontWeight: 950, fontSize: 14 }}>{t.score}</div>
-                  <div style={{ color: theme.colors.textFaint, fontSize: 12, fontWeight: 900 }}>
-                    Verified
-                  </div>
-                </div>
-
-                <p style={s.quote}>“{t.quote}”</p>
-
-                <div style={s.person}>
-                  <div style={s.personLeft}>
-                    <div style={s.avatar}>{t.name.slice(0, 1)}</div>
-                    <div>
-                      <div style={{ fontWeight: 950, fontSize: 13 }}>{t.name}</div>
-                      <p style={s.role}>{t.role}</p>
-                    </div>
-                  </div>
-                  <div style={{ color: theme.colors.textFaint, fontSize: 12, fontWeight: 900 }}>★</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        
 
         {/* CONTACT */}
         <section style={s.section}>

@@ -9,26 +9,49 @@ export default function Trainers() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
+  const [myTrainerId, setMyTrainerId] = useState(null);
+  const [subscribingId, setSubscribingId] = useState(null);
+
   useEffect(() => {
     let alive = true;
 
-    setLoading(true);
-    setErr("");
+    async function load() {
+      try {
+        setLoading(true);
+        setErr("");
 
-    api
-      .get("/trainers")
-      .then((res) => {
+        const [trainersRes, userRes] = await Promise.all([
+          api.get("/trainers"),
+          api.get("/user"),
+        ]);
+
         if (!alive) return;
-        setItems(unwrap(res.data) ?? []);
-      })
-      .catch((e) => {
+
+        const trainers = unwrap(trainersRes.data) ?? [];
+        const user = userRes.data;
+
+        console.log("USER RAW RESPONSE:", userRes.data);
+    console.log("USER AFTER UNWRAP:", user);
+    console.log("TRAINER ID FROM USER:", user?.profile?.trainer_id);
+
+        setItems(trainers);
+        setMyTrainerId(
+          user?.profile?.trainer_id ??
+            user?.profile?.trainerId ??
+            user?.trainer_id ??
+            user?.trainerId ??
+            null
+        );
+      } catch (e) {
         if (!alive) return;
         setErr(e?.response?.data?.message || "Failed to load trainers.");
-      })
-      .finally(() => {
+      } finally {
         if (!alive) return;
         setLoading(false);
-      });
+      }
+    }
+
+    load();
 
     return () => {
       alive = false;
@@ -46,9 +69,42 @@ export default function Trainers() {
     });
   }, [items, q]);
 
+  const subscribeToTrainer = async (trainerId) => {
+    try {
+      setSubscribingId(trainerId);
+      setErr("");
+
+      const res = await api.post(`/member/trainers/${trainerId}/subscribe`);
+      const data = unwrap(res.data) ?? res.data;
+
+      setMyTrainerId(
+        data?.trainer_id ??
+          data?.trainerId ??
+          trainerId
+      );
+    } catch (e) {
+      setErr(e?.response?.data?.message || "Failed to subscribe to trainer.");
+    } finally {
+      setSubscribingId(null);
+    }
+  };
+
+  const unsubscribe = async () => {
+    try {
+      setSubscribingId(myTrainerId);
+      setErr("");
+
+      await api.delete("/member/trainer-subscription");
+      setMyTrainerId(null);
+    } catch (e) {
+      setErr(e?.response?.data?.message || "Failed to unsubscribe.");
+    } finally {
+      setSubscribingId(null);
+    }
+  };
+
   return (
     <div style={page.pageWrap}>
-      {/* نفس جو auth pages */}
       <div style={ui.bgGrid} />
       <div style={ui.glowTop} />
       <div style={ui.glowBottom} />
@@ -87,39 +143,73 @@ export default function Trainers() {
           </div>
         ) : (
           <div style={page.grid}>
-            {filtered.map((t) => (
-              <div key={t.id} style={page.card}>
-                <div style={page.cardTop}>
-                  <div style={page.name}>{t.full_name}</div>
+            {filtered.map((t) => {
+              const trainerId = t.id ?? t.trainer_id;
+              const isMyTrainer = Number(myTrainerId) === Number(trainerId);
+              const isBusy = Number(subscribingId) === Number(trainerId);
+              const isAnyActionRunning = subscribingId !== null;
 
-                  <div style={page.badge}>
-                    <span style={page.badgeDot} />
-                    {t.rating ?? "5.0"} ⭐
-                  </div>
-                </div>
+              return (
+                <div key={trainerId} style={page.card}>
+                  <div style={page.cardTop}>
+                    <div style={page.name}>{t.full_name}</div>
 
-                <div style={page.metaRow}>
-                  <div style={page.metaItem}>
-                    <div style={page.metaLabel}>Hourly</div>
-                    <div style={page.metaValue}>
-                      {t.hourly_rate ?? "-"}
-                      {t.hourly_rate ? " / hr" : ""}
+                    <div style={page.badge}>
+                      <span style={page.badgeDot} />
+                      {t.rating ?? "5.0"} ⭐
                     </div>
                   </div>
 
-                  <div style={page.metaItem}>
-                    <div style={page.metaLabel}>Experience</div>
-                    <div style={page.metaValue}>{t.experience_years ?? "-"}</div>
+                  <div style={page.metaRow}>
+                    <div style={page.metaItem}>
+                      <div style={page.metaLabel}>Hourly</div>
+                      <div style={page.metaValue}>
+                        {t.hourly_rate ?? "-"}
+                        {t.hourly_rate ? " / hr" : ""}
+                      </div>
+                    </div>
+
+                    <div style={page.metaItem}>
+                      <div style={page.metaLabel}>Experience</div>
+                      <div style={page.metaValue}>
+                        {t.experience_years ?? "-"}
+                      </div>
+                    </div>
                   </div>
+
+                  <div style={page.bioLabel}>Bio</div>
+                  <div style={page.bio}>{t.bio ?? "-"}</div>
+
+                  {isMyTrainer ? (
+                    <div style={page.actionRow}>
+                      <button style={page.currentBtn} disabled>
+                        Subscribed
+                      </button>
+
+                      <button
+                        style={page.unsubscribeBtn}
+                        onClick={unsubscribe}
+                        disabled={isAnyActionRunning}
+                      >
+                        {isBusy ? "Processing..." : "Unsubscribe"}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      style={{
+                        ...page.btn,
+                        opacity: isAnyActionRunning ? 0.8 : 1,
+                        cursor: isAnyActionRunning ? "not-allowed" : "pointer",
+                      }}
+                      onClick={() => subscribeToTrainer(trainerId)}
+                      disabled={isAnyActionRunning}
+                    >
+                      {isBusy ? "Subscribing..." : "Subscribe"}
+                    </button>
+                  )}
                 </div>
-
-                <div style={page.bioLabel}>Bio</div>
-                <div style={page.bio}>{t.bio ?? "-"}</div>
-
-                {/* اختياري: زر */}
-                {/* <button style={page.btn}>View Profile</button> */}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -176,8 +266,9 @@ const page = {
 
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+    gridTemplateColumns: "repeat(3, 360px)",
     gap: 14,
+    
   },
 
   card: {
@@ -279,11 +370,40 @@ const page = {
     transition: theme.motion.base,
   },
 
-  // loading skeleton
+  actionRow: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 10,
+    marginTop: 12,
+  },
+
+  currentBtn: {
+    width: "100%",
+    padding: "12px 14px",
+    borderRadius: theme.radius.md,
+    border: `1px solid ${theme.colors.borderSoft}`,
+    background: "rgba(0,245,212,.12)",
+    color: "#00f5d4",
+    fontWeight: 900,
+    cursor: "default",
+  },
+
+  unsubscribeBtn: {
+    width: "100%",
+    padding: "12px 14px",
+    borderRadius: theme.radius.md,
+    border: `1px solid rgba(255,255,255,.12)`,
+    background: "rgba(255,255,255,.05)",
+    color: theme.colors.text,
+    fontWeight: 900,
+    cursor: "pointer",
+  },
+
   skeletonGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+    gridTemplateColumns: "repeat(3, 260px)",
     gap: 14,
+    justifyContent: "center",
   },
 
   skeletonCard: {

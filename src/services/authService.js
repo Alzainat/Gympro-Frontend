@@ -28,3 +28,13 @@ export const logout = async () => {
   localStorage.removeItem("token");
   setAuthToken(null);
 };
+
+export const forgotPassword = async (data) => {
+  const response = await api.post("/forgot-password", data);
+  return response.data;
+};
+
+export const resetPassword = async (data) => {
+  const response = await api.post("/reset-password", data);
+  return response.data;
+};

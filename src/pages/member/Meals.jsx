@@ -5,13 +5,12 @@ import { theme, ui } from "../../theme/uiTheme";
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const TIMES = ["breakfast", "lunch", "dinner", "snack", "other"];
 
+const API_BASE = "http://127.0.0.1:8000";
+
 export default function Meals() {
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
-
   const [day, setDay] = useState("Monday");
-
-  // للأنيميشن عند تغيير اليوم
   const [animKey, setAnimKey] = useState(0);
 
   useEffect(() => {
@@ -29,12 +28,17 @@ export default function Meals() {
 
   const handleDayChange = (d) => {
     setDay(d);
-    setAnimKey((k) => k + 1); // يعيد تشغيل الأنيميشن
+    setAnimKey((k) => k + 1);
+  };
+
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith("http://") || path.startsWith("https://")) return path;
+    return `${API_BASE}/storage/${path}`;
   };
 
   return (
     <div style={page.page}>
-      {/* نفس ديكوريشن auth */}
       <div style={ui.bgGrid} />
       <div style={ui.glowTop} />
       <div style={ui.glowBottom} />
@@ -61,26 +65,19 @@ export default function Meals() {
                     key={d}
                     style={tabs.btn(d === day)}
                     onClick={() => handleDayChange(d)}
-                    onMouseEnter={(e) => {
-                      if (d !== day) e.currentTarget.style.border = `1px solid ${theme.colors.borderSoft}`;
-                    }}
-                    onMouseLeave={(e) => {
-                      if (d !== day) e.currentTarget.style.border = `1px solid ${theme.colors.border}`;
-                    }}
                   >
                     {d.slice(0, 3)}
                   </button>
                 ))}
               </div>
 
-              {/* ✅ أنيميشن ناعم عند تغيير اليوم */}
               <div key={animKey} style={anim.wrap}>
                 {!hasAny ? (
                   <div style={{ ...page.dim, marginTop: 14 }}>
                     No meals for <b style={{ color: theme.colors.text }}>{day}</b>.
                   </div>
                 ) : (
-                  <div style={{ marginTop: 16, display: "grid", gap: 16 }}>
+                  <div style={{ marginTop: 16, display: "grid", gap: 18 }}>
                     {TIMES.map((time) => {
                       const items = dayGroups?.[time] || [];
                       if (!items.length) return null;
@@ -93,48 +90,72 @@ export default function Meals() {
                             <div style={section.count}>{items.length}</div>
                           </div>
 
-                          <div style={table.shell}>
-                            <table style={table.table}>
-                              <thead>
-                                <tr>
-                                  <th style={table.th}>Meal</th>
-                                  <th style={table.th}>Calories</th>
-                                  <th style={table.th}>Macros</th>
-                                </tr>
-                              </thead>
+                          <div style={mealList.wrap}>
+                            {items.map((m, idx) => {
+                              const imageSrc = getImageUrl(m.image_url);
 
-                              <tbody>
-                                {items.map((m, idx) => (
-                                  <tr
-                                    key={m.assignment_id ?? `${m.meal_id}-${idx}`}
-                                    style={table.tr}
-                                    onMouseEnter={(e) => {
-                                      e.currentTarget.style.background = "rgba(255,255,255,.04)";
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.background = "transparent";
-                                    }}
-                                  >
-                                    <td style={table.td}>{m.name ?? "-"}</td>
+                              return (
+                                <div
+                                  key={m.assignment_id ?? `${m.meal_id}-${idx}`}
+                                  style={mealCard.wrap}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = "translateY(-3px)";
+                                    e.currentTarget.style.border = `1px solid ${theme.colors.borderSoft}`;
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = "translateY(0)";
+                                    e.currentTarget.style.border = `1px solid ${theme.colors.border}`;
+                                  }}
+                                >
+                                  <div style={mealCard.left}>
+                                    {imageSrc ? (
+                                      <img
+                                        src={imageSrc}
+                                        alt={m.name || "Meal"}
+                                        style={mealCard.image}
+                                      />
+                                    ) : (
+                                      <div style={mealCard.placeholder}>
+                                        <span style={mealCard.placeholderIcon}>🍽️</span>
+                                        <span style={mealCard.placeholderText}>No image</span>
+                                      </div>
+                                    )}
+                                  </div>
 
-                                    {/* ✅ Calories كـ Pill */}
-                                    <td style={table.td}>
+                                  <div style={mealCard.right}>
+                                    <div style={mealCard.topRow}>
+                                      <div style={mealCard.titleCol}>
+                                        <h3 style={mealCard.name}>{m.name ?? "-"}</h3>
+                                        {m.description ? (
+                                          <p style={mealCard.desc}>{m.description}</p>
+                                        ) : (
+                                          <p style={mealCard.descMuted}>No description available.</p>
+                                        )}
+                                      </div>
+
                                       <span style={calorie.pill}>
                                         {m.calories ?? "-"} {m.calories ? "kcal" : ""}
                                       </span>
-                                    </td>
+                                    </div>
 
-                                    <td style={table.tdDim}>
-                                      <span style={macro.p}>P:{m.protein ?? "-"}</span>
-                                      <span style={macro.sep}>/</span>
-                                      <span style={macro.c}>C:{m.carbs ?? "-"}</span>
-                                      <span style={macro.sep}>/</span>
-                                      <span style={macro.f}>F:{m.fats ?? "-"}</span>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
+                                    <div style={macroBox.wrap}>
+                                      <div style={macroBox.item}>
+                                        <span style={macroBox.label}>Protein</span>
+                                        <span style={macroBox.valuePrimary}>{m.protein ?? "-"}</span>
+                                      </div>
+                                      <div style={macroBox.item}>
+                                        <span style={macroBox.label}>Carbs</span>
+                                        <span style={macroBox.valuePurple}>{m.carbs ?? "-"}</span>
+                                      </div>
+                                      <div style={macroBox.item}>
+                                        <span style={macroBox.label}>Fats</span>
+                                        <span style={macroBox.valueLight}>{m.fats ?? "-"}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       );
@@ -239,7 +260,6 @@ const anim = {
   },
 };
 
-// Inject keyframes مرة وحدة
 if (typeof document !== "undefined" && !document.getElementById("meals-anim-style")) {
   const style = document.createElement("style");
   style.id = "meals-anim-style";
@@ -263,7 +283,7 @@ const section = {
     display: "flex",
     alignItems: "center",
     gap: 10,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   pill: {
     textTransform: "capitalize",
@@ -295,46 +315,95 @@ const section = {
   },
 };
 
-const table = {
-  shell: {
-    width: "100%",
-    overflowX: "auto",
-    borderRadius: theme.radius.md,
+const mealList = {
+  wrap: {
+    display: "grid",
+    gap: 14,
+  },
+};
+
+const mealCard = {
+  wrap: {
+    display: "flex",
+    alignItems: "stretch",
+    gap: 14,
+    padding: 14,
+    borderRadius: 20,
+    overflow: "hidden",
     border: `1px solid ${theme.colors.border}`,
-    background: "rgba(255,255,255,.02)",
+    background: "rgba(255,255,255,.03)",
+    transition: "all .22s ease",
+    boxShadow: "0 10px 30px rgba(0,0,0,.18)",
   },
-  table: {
+  left: {
+    width: 132,
+    minWidth: 132,
+    height: 132,
+    borderRadius: 18,
+    overflow: "hidden",
+    background: "rgba(255,255,255,.04)",
+    border: `1px solid ${theme.colors.border}`,
+    flexShrink: 0,
+  },
+  image: {
     width: "100%",
-    borderCollapse: "collapse",
-    minWidth: 650,
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
   },
-  th: {
-    textAlign: "left",
-    padding: "12px 14px",
-    borderBottom: `1px solid ${theme.colors.border}`,
-    color: theme.colors.textFaint,
-    fontSize: 12,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-    background: "rgba(255,255,255,.02)",
-    whiteSpace: "nowrap",
-  },
-  tr: {
-    transition: theme.motion.fast,
-  },
-  td: {
-    padding: "12px 14px",
-    borderBottom: `1px solid rgba(255,255,255,.06)`,
-    color: theme.colors.text,
-    whiteSpace: "nowrap",
-    fontSize: 14,
-  },
-  tdDim: {
-    padding: "12px 14px",
-    borderBottom: `1px solid rgba(255,255,255,.06)`,
+  placeholder: {
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "column",
+    gap: 8,
     color: theme.colors.textDim,
-    whiteSpace: "nowrap",
-    fontSize: 14,
+    background: "linear-gradient(135deg, rgba(255,255,255,.03), rgba(255,255,255,.06))",
+  },
+  placeholderIcon: {
+    fontSize: 24,
+  },
+  placeholderText: {
+    fontSize: 12,
+    fontWeight: 700,
+  },
+  right: {
+    flex: 1,
+    minWidth: 0,
+    display: "grid",
+    gap: 12,
+  },
+  topRow: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  titleCol: {
+    minWidth: 0,
+    flex: 1,
+  },
+  name: {
+    margin: 0,
+    fontSize: 18,
+    fontWeight: 900,
+    color: theme.colors.text,
+    lineHeight: 1.2,
+  },
+  desc: {
+    margin: "6px 0 0",
+    color: theme.colors.textDim,
+    fontSize: 13,
+    lineHeight: 1.6,
+  },
+  descMuted: {
+    margin: "6px 0 0",
+    color: theme.colors.textFaint,
+    fontSize: 13,
+    lineHeight: 1.6,
+    fontStyle: "italic",
   },
 };
 
@@ -349,12 +418,45 @@ const calorie = {
     fontWeight: 900,
     fontSize: 12,
     letterSpacing: 0.5,
+    whiteSpace: "nowrap",
+    flexShrink: 0,
   },
 };
 
-const macro = {
-  p: { color: theme.colors.primary, fontWeight: 900 },
-  c: { color: "#c4b5fd", fontWeight: 900 },
-  f: { color: "rgba(255,255,255,.85)", fontWeight: 900 },
-  sep: { margin: "0 8px", color: theme.colors.textFaint },
+const macroBox = {
+  wrap: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(90px, 1fr))",
+    gap: 10,
+  },
+  item: {
+    padding: "10px 12px",
+    borderRadius: 14,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.03)",
+    display: "grid",
+    gap: 6,
+  },
+  label: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    color: theme.colors.textFaint,
+    fontWeight: 800,
+  },
+  valuePrimary: {
+    color: theme.colors.primary,
+    fontWeight: 900,
+    fontSize: 15,
+  },
+  valuePurple: {
+    color: "#c4b5fd",
+    fontWeight: 900,
+    fontSize: 15,
+  },
+  valueLight: {
+    color: "rgba(255,255,255,.88)",
+    fontWeight: 900,
+    fontSize: 15,
+  },
 };

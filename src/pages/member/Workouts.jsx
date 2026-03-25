@@ -2,12 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
 import { theme, ui } from "../../theme/uiTheme";
 
-const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const API_BASE = "http://127.0.0.1:8000";
 
 export default function Workouts() {
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
   const [day, setDay] = useState("Monday");
+  const [animKey, setAnimKey] = useState(0);
 
   useEffect(() => {
     api.get("/member/workouts")
@@ -17,9 +19,19 @@ export default function Workouts() {
 
   const routines = useMemo(() => data?.[day] || [], [data, day]);
 
+  const handleDayChange = (d) => {
+    setDay(d);
+    setAnimKey((k) => k + 1);
+  };
+
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith("http://") || path.startsWith("https://")) return path;
+    return `${API_BASE}/storage/${path}`;
+  };
+
   return (
     <div style={page.page}>
-      {/* نفس ديكوريشن auth */}
       <div style={ui.bgGrid} />
       <div style={ui.glowTop} />
       <div style={ui.glowBottom} />
@@ -28,9 +40,7 @@ export default function Workouts() {
         <div style={page.card}>
           <div style={page.headerRow}>
             <h2 style={page.title}>Workouts</h2>
-            <div style={page.badge}>
-              {day.slice(0, 3).toUpperCase()}
-            </div>
+            <div style={page.badge}>{day.slice(0, 3).toUpperCase()}</div>
           </div>
 
           {loading ? (
@@ -47,68 +57,106 @@ export default function Workouts() {
                   <button
                     key={d}
                     style={tabs.btn(d === day)}
-                    onClick={() => setDay(d)}
-                    onMouseEnter={(e) => {
-                      if (d !== day) e.currentTarget.style.border = `1px solid ${theme.colors.borderSoft}`;
-                    }}
-                    onMouseLeave={(e) => {
-                      if (d !== day) e.currentTarget.style.border = `1px solid ${theme.colors.border}`;
-                    }}
+                    onClick={() => handleDayChange(d)}
                   >
                     {d.slice(0, 3)}
                   </button>
                 ))}
               </div>
 
-              {!routines.length ? (
-                <div style={{ ...page.dim, marginTop: 14 }}>
-                  No workouts for <b style={{ color: theme.colors.text }}>{day}</b>.
-                </div>
-              ) : (
-                <div style={{ marginTop: 16, display: "grid", gap: 16 }}>
-                  {routines.map((routine) => (
-                    <div key={routine.routine_id} style={routineCard.wrap}>
-                      <div style={routineCard.head}>
-                        <h3 style={routineCard.name}>{routine.routine_name}</h3>
-                        <div style={routineCard.line} />
-                      </div>
+              <div key={animKey} style={anim.wrap}>
+                {!routines.length ? (
+                  <div style={{ ...page.dim, marginTop: 14 }}>
+                    No workouts for <b style={{ color: theme.colors.text }}>{day}</b>.
+                  </div>
+                ) : (
+                  <div style={{ marginTop: 16, display: "grid", gap: 16 }}>
+                    {routines.map((routine) => (
+                      <div key={routine.routine_id} style={routineCard.wrap}>
+                        <div style={routineCard.head}>
+                          <h3 style={routineCard.name}>{routine.routine_name}</h3>
+                          <div style={routineCard.line} />
+                        </div>
 
-                      <div style={table.shell}>
-                        <table style={table.table}>
-                          <thead>
-                            <tr>
-                              <th style={table.th}>Exercise</th>
-                              <th style={table.th}>Target</th>
-                              <th style={table.th}>Difficulty</th>
-                              <th style={table.th}>Sets</th>
-                              <th style={table.th}>Reps</th>
-                              <th style={table.th}>Rest</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {routine.exercises.map((x, idx) => (
-                              <tr key={`${x.exercise_id}-${idx}`} style={table.tr}>
-                                <td style={table.td}>{x.exercise_name ?? "-"}</td>
-                                <td style={table.tdDim}>{x.target_muscle ?? "-"}</td>
-                                <td style={pill.wrap}>
-                                  <span style={pill.tag(x.difficulty)}>
-                                    {x.difficulty ?? "-"}
-                                  </span>
-                                </td>
-                                <td style={table.td}>{x.sets ?? "-"}</td>
-                                <td style={table.td}>{x.reps ?? "-"}</td>
-                                <td style={table.td}>
-                                  {x.rest_seconds ? `${x.rest_seconds}s` : "-"}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                        <div style={exerciseList.wrap}>
+                          {routine.exercises.map((x, idx) => {
+                            const imageSrc = getImageUrl(x.image_url);
+
+                            return (
+                              <div
+                                key={`${x.exercise_id}-${idx}`}
+                                style={exerciseCard.wrap}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.transform = "translateY(-3px)";
+                                  e.currentTarget.style.border = `1px solid ${theme.colors.borderSoft}`;
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.transform = "translateY(0)";
+                                  e.currentTarget.style.border = `1px solid ${theme.colors.border}`;
+                                }}
+                              >
+                                <div style={exerciseCard.left}>
+                                  {imageSrc ? (
+                                    <img
+                                      src={imageSrc}
+                                      alt={x.exercise_name || "Exercise"}
+                                      style={exerciseCard.image}
+                                    />
+                                  ) : (
+                                    <div style={exerciseCard.placeholder}>
+                                      <span style={exerciseCard.placeholderIcon}>🏋️</span>
+                                      <span style={exerciseCard.placeholderText}>No image</span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div style={exerciseCard.right}>
+                                  <div style={exerciseCard.topRow}>
+                                    <div style={exerciseCard.titleCol}>
+                                      <h4 style={exerciseCard.exerciseName}>
+                                        {x.exercise_name ?? "-"}
+                                      </h4>
+
+                                      <div style={metaRow.wrap}>
+                                        <span style={metaRow.target}>
+                                          {x.target_muscle ?? "No target"}
+                                        </span>
+
+                                        <span style={difficulty.tag(x.difficulty)}>
+                                          {x.difficulty ?? "-"}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div style={stats.wrap}>
+                                    <div style={stats.item}>
+                                      <span style={stats.label}>Sets</span>
+                                      <span style={stats.value}>{x.sets ?? "-"}</span>
+                                    </div>
+
+                                    <div style={stats.item}>
+                                      <span style={stats.label}>Reps</span>
+                                      <span style={stats.value}>{x.reps ?? "-"}</span>
+                                    </div>
+
+                                    <div style={stats.item}>
+                                      <span style={stats.label}>Rest</span>
+                                      <span style={stats.value}>
+                                        {x.rest_seconds ? `${x.rest_seconds}s` : "-"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
@@ -199,6 +247,25 @@ const tabs = {
   }),
 };
 
+const anim = {
+  wrap: {
+    animation: "workoutsFadeIn .22s ease",
+    willChange: "transform, opacity",
+  },
+};
+
+if (typeof document !== "undefined" && !document.getElementById("workouts-anim-style")) {
+  const style = document.createElement("style");
+  style.id = "workouts-anim-style";
+  style.innerHTML = `
+    @keyframes workoutsFadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 const routineCard = {
   wrap: {
     padding: 16,
@@ -210,7 +277,7 @@ const routineCard = {
     display: "flex",
     alignItems: "center",
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   name: {
     margin: 0,
@@ -226,57 +293,110 @@ const routineCard = {
   },
 };
 
-const table = {
-  shell: {
-    width: "100%",
-    overflowX: "auto",
-    borderRadius: theme.radius.md,
-    border: `1px solid ${theme.colors.border}`,
-    background: "rgba(255,255,255,.02)",
-  },
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-    minWidth: 720,
-  },
-  th: {
-    textAlign: "left",
-    padding: "12px 14px",
-    borderBottom: `1px solid ${theme.colors.border}`,
-    color: theme.colors.textFaint,
-    fontSize: 12,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-    background: "rgba(255,255,255,.02)",
-    whiteSpace: "nowrap",
-  },
-  tr: {
-    transition: theme.motion.fast,
-  },
-  td: {
-    padding: "12px 14px",
-    borderBottom: `1px solid rgba(255,255,255,.06)`,
-    color: theme.colors.text,
-    whiteSpace: "nowrap",
-    fontSize: 14,
-  },
-  tdDim: {
-    padding: "12px 14px",
-    borderBottom: `1px solid rgba(255,255,255,.06)`,
-    color: theme.colors.textDim,
-    whiteSpace: "nowrap",
-    fontSize: 14,
+const exerciseList = {
+  wrap: {
+    display: "grid",
+    gap: 14,
   },
 };
 
-const pill = {
+const exerciseCard = {
   wrap: {
-    padding: "12px 14px",
-    borderBottom: `1px solid rgba(255,255,255,.06)`,
-    whiteSpace: "nowrap",
+    display: "flex",
+    alignItems: "stretch",
+    gap: 14,
+    padding: 14,
+    borderRadius: 20,
+    overflow: "hidden",
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.03)",
+    transition: "all .22s ease",
+    boxShadow: "0 10px 30px rgba(0,0,0,.18)",
   },
-  tag: (difficulty) => {
-    const d = (difficulty || "").toLowerCase();
+  left: {
+    width: 132,
+    minWidth: 132,
+    height: 132,
+    borderRadius: 18,
+    overflow: "hidden",
+    background: "rgba(255,255,255,.04)",
+    border: `1px solid ${theme.colors.border}`,
+    flexShrink: 0,
+  },
+  image: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
+  },
+  placeholder: {
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "column",
+    gap: 8,
+    color: theme.colors.textDim,
+    background: "linear-gradient(135deg, rgba(255,255,255,.03), rgba(255,255,255,.06))",
+  },
+  placeholderIcon: {
+    fontSize: 24,
+  },
+  placeholderText: {
+    fontSize: 12,
+    fontWeight: 700,
+  },
+  right: {
+    flex: 1,
+    minWidth: 0,
+    display: "grid",
+    gap: 12,
+  },
+  topRow: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  titleCol: {
+    minWidth: 0,
+    flex: 1,
+  },
+  exerciseName: {
+    margin: 0,
+    fontSize: 18,
+    fontWeight: 900,
+    color: theme.colors.text,
+    lineHeight: 1.2,
+  },
+};
+
+const metaRow = {
+  wrap: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    flexWrap: "wrap",
+    marginTop: 8,
+  },
+  target: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.04)",
+    color: theme.colors.textDim,
+    fontSize: 12,
+    fontWeight: 800,
+    letterSpacing: 0.4,
+  },
+};
+
+const difficulty = {
+  tag: (value) => {
+    const d = (value || "").toLowerCase();
     const isHard = d.includes("hard") || d.includes("advanced");
     const isMid = d.includes("medium") || d.includes("intermediate");
 
@@ -309,6 +429,35 @@ const pill = {
       fontWeight: 900,
       fontSize: 12,
       letterSpacing: 0.6,
+      textTransform: "capitalize",
     };
+  },
+};
+
+const stats = {
+  wrap: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(90px, 1fr))",
+    gap: 10,
+  },
+  item: {
+    padding: "10px 12px",
+    borderRadius: 14,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.03)",
+    display: "grid",
+    gap: 6,
+  },
+  label: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    color: theme.colors.textFaint,
+    fontWeight: 800,
+  },
+  value: {
+    color: theme.colors.text,
+    fontWeight: 900,
+    fontSize: 15,
   },
 };

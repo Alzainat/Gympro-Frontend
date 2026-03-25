@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import api from "../../api/axios";
 import { theme, ui } from "../../theme/uiTheme";
+
+
 
 export default function HealthConditions() {
   const [text, setText] = useState("");
@@ -12,6 +14,13 @@ export default function HealthConditions() {
   const [animKey, setAnimKey] = useState(0);
 
   const canSubmit = useMemo(() => text.trim().length > 0 && !loading, [text, loading]);
+
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith("http://") || path.startsWith("https://")) return path;
+    if (path.startsWith("/")) return `${API_BASE}${path}`;
+    return `${API_BASE}/${path}`;
+  };
 
   const check = async () => {
     if (!text.trim()) return;
@@ -45,7 +54,6 @@ export default function HealthConditions() {
 
   return (
     <div style={page.page}>
-      {/* Auth-like decorative background */}
       <div style={ui.bgGrid} />
       <div style={ui.glowTop} />
       <div style={ui.glowBottom} />
@@ -89,7 +97,6 @@ export default function HealthConditions() {
             </div>
           </div>
 
-          {/* Results */}
           <div key={animKey} style={anim.wrap}>
             <div style={section.wrap}>
               <div style={section.head}>
@@ -105,26 +112,69 @@ export default function HealthConditions() {
                   <div style={empty.sub}>If you expected results, try a more specific condition.</div>
                 </div>
               ) : (
-                <div style={cards.grid}>
-                  {blocked.map((x) => (
-                    <div key={x.exercise_id} style={cards.card}>
-                      <div style={cards.top}>
-                        <div style={cards.name}>{x.name}</div>
-                        <span style={cards.tagBlocked}>BLOCKED</span>
-                      </div>
+                <div style={exerciseList.wrap}>
+                  {blocked.map((x, idx) => {
+                    const imageSrc = getImageUrl(x.image);
 
-                      {x.reason ? <div style={cards.reason}>Reason: {x.reason}</div> : null}
-
-                      {x.matched_condition || x.matched_keyword ? (
-                        <div style={cards.meta}>
-                          Matched:{" "}
-                          <b style={{ color: theme.colors.text }}>{x.matched_condition || "-"}</b>{" "}
-                          <span style={{ color: theme.colors.textFaint }}>→</span>{" "}
-                          <b style={{ color: theme.colors.text }}>{x.matched_keyword || "-"}</b>
+                    return (
+                      <div
+                        key={`${x.exercise_id}-${idx}`}
+                        style={exerciseCard.wrap}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = "translateY(-3px)";
+                          e.currentTarget.style.border = `1px solid ${theme.colors.borderSoft || theme.colors.border}`;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "translateY(0)";
+                          e.currentTarget.style.border = `1px solid ${theme.colors.border}`;
+                        }}
+                      >
+                        <div style={exerciseCard.left}>
+                          {imageSrc ? (
+                            <img
+                              src={imageSrc}
+                              alt={x.name || "Exercise"}
+                              style={exerciseCard.image}
+                            />
+                          ) : (
+                            <div style={exerciseCard.placeholder}>
+                              <span style={exerciseCard.placeholderIcon}>🏋️</span>
+                              <span style={exerciseCard.placeholderText}>No image</span>
+                            </div>
+                          )}
                         </div>
-                      ) : null}
-                    </div>
-                  ))}
+
+                        <div style={exerciseCard.right}>
+                          <div style={exerciseCard.topRow}>
+                            <div style={exerciseCard.titleCol}>
+                              <h4 style={exerciseCard.exerciseName}>{x.name ?? "-"}</h4>
+
+                              <div style={metaRow.wrap}>
+                                <span style={severityTag.blocked}>BLOCKED</span>
+                                {x.matched_condition ? (
+                                  <span style={metaRow.target}>
+                                    Condition: {x.matched_condition}
+                                  </span>
+                                ) : null}
+                                {x.matched_keyword ? (
+                                  <span style={metaRow.target}>
+                                    Match: {x.matched_keyword}
+                                  </span>
+                                ) : null}
+                              </div>
+                            </div>
+                          </div>
+
+                          {x.reason ? (
+                            <div style={exerciseCard.reasonBox}>
+                              <span style={exerciseCard.reasonLabel}>Reason</span>
+                              <span style={exerciseCard.reasonText}>{x.reason}</span>
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -145,26 +195,69 @@ export default function HealthConditions() {
                   <div style={empty.sub}>You’re good to go based on the current input.</div>
                 </div>
               ) : (
-                <div style={cards.grid}>
-                  {warnings.map((x) => (
-                    <div key={x.exercise_id} style={cards.card}>
-                      <div style={cards.top}>
-                        <div style={cards.name}>{x.name}</div>
-                        <span style={cards.tagWarn}>WARNING</span>
-                      </div>
+                <div style={exerciseList.wrap}>
+                  {warnings.map((x, idx) => {
+                    const imageSrc = getImageUrl(x.image);
 
-                      {x.reason ? <div style={cards.reason}>Reason: {x.reason}</div> : null}
-
-                      {x.matched_condition || x.matched_keyword ? (
-                        <div style={cards.meta}>
-                          Matched:{" "}
-                          <b style={{ color: theme.colors.text }}>{x.matched_condition || "-"}</b>{" "}
-                          <span style={{ color: theme.colors.textFaint }}>→</span>{" "}
-                          <b style={{ color: theme.colors.text }}>{x.matched_keyword || "-"}</b>
+                    return (
+                      <div
+                        key={`${x.exercise_id}-${idx}`}
+                        style={exerciseCard.wrap}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = "translateY(-3px)";
+                          e.currentTarget.style.border = `1px solid ${theme.colors.borderSoft || theme.colors.border}`;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "translateY(0)";
+                          e.currentTarget.style.border = `1px solid ${theme.colors.border}`;
+                        }}
+                      >
+                        <div style={exerciseCard.left}>
+                          {imageSrc ? (
+                            <img
+                              src={imageSrc}
+                              alt={x.name || "Exercise"}
+                              style={exerciseCard.image}
+                            />
+                          ) : (
+                            <div style={exerciseCard.placeholder}>
+                              <span style={exerciseCard.placeholderIcon}>🏋️</span>
+                              <span style={exerciseCard.placeholderText}>No image</span>
+                            </div>
+                          )}
                         </div>
-                      ) : null}
-                    </div>
-                  ))}
+
+                        <div style={exerciseCard.right}>
+                          <div style={exerciseCard.topRow}>
+                            <div style={exerciseCard.titleCol}>
+                              <h4 style={exerciseCard.exerciseName}>{x.name ?? "-"}</h4>
+
+                              <div style={metaRow.wrap}>
+                                <span style={severityTag.warning}>WARNING</span>
+                                {x.matched_condition ? (
+                                  <span style={metaRow.target}>
+                                    Condition: {x.matched_condition}
+                                  </span>
+                                ) : null}
+                                {x.matched_keyword ? (
+                                  <span style={metaRow.target}>
+                                    Match: {x.matched_keyword}
+                                  </span>
+                                ) : null}
+                              </div>
+                            </div>
+                          </div>
+
+                          {x.reason ? (
+                            <div style={exerciseCard.reasonBox}>
+                              <span style={exerciseCard.reasonLabel}>Reason</span>
+                              <span style={exerciseCard.reasonText}>{x.reason}</span>
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -181,7 +274,7 @@ export default function HealthConditions() {
   );
 }
 
-/* ---------------- Styles (theme-based) ---------------- */
+/* ---------------- Styles ---------------- */
 
 const page = {
   page: {
@@ -392,42 +485,139 @@ const empty = {
   },
 };
 
-const cards = {
-  grid: {
+const anim = {
+  wrap: {
+    animation: "hcFadeIn .22s ease",
+    willChange: "transform, opacity",
+  },
+};
+
+const exerciseList = {
+  wrap: {
     display: "grid",
-    gap: 12,
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+    gap: 14,
   },
-  card: {
+};
+
+const exerciseCard = {
+  wrap: {
+    display: "flex",
+    alignItems: "stretch",
+    gap: 14,
     padding: 14,
-    borderRadius: theme.radius.lg,
-    background: theme.colors.surface,
+    borderRadius: 20,
+    overflow: "hidden",
     border: `1px solid ${theme.colors.border}`,
-    transition: theme.motion.base,
+    background: "rgba(255,255,255,.03)",
+    transition: "all .22s ease",
+    boxShadow: "0 10px 30px rgba(0,0,0,.18)",
   },
-  top: {
+  left: {
+    width: 132,
+    minWidth: 132,
+    height: 132,
+    borderRadius: 18,
+    overflow: "hidden",
+    background: "rgba(255,255,255,.04)",
+    border: `1px solid ${theme.colors.border}`,
+    flexShrink: 0,
+  },
+  image: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
+  },
+  placeholder: {
+    width: "100%",
+    height: "100%",
     display: "flex",
     alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "column",
+    gap: 8,
+    color: theme.colors.textDim,
+    background: "linear-gradient(135deg, rgba(255,255,255,.03), rgba(255,255,255,.06))",
+  },
+  placeholderIcon: {
+    fontSize: 24,
+  },
+  placeholderText: {
+    fontSize: 12,
+    fontWeight: 700,
+  },
+  right: {
+    flex: 1,
+    minWidth: 0,
+    display: "grid",
+    gap: 12,
+  },
+  topRow: {
+    display: "flex",
+    alignItems: "flex-start",
     justifyContent: "space-between",
-    gap: 10,
-    marginBottom: 8,
+    gap: 12,
   },
-  name: {
+  titleCol: {
+    minWidth: 0,
+    flex: 1,
+  },
+  exerciseName: {
+    margin: 0,
+    fontSize: 18,
     fontWeight: 900,
-    letterSpacing: 0.2,
+    color: theme.colors.text,
+    lineHeight: 1.2,
   },
-  reason: {
+  reasonBox: {
+    display: "grid",
+    gap: 6,
+    padding: "10px 12px",
+    borderRadius: 14,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.03)",
+  },
+  reasonLabel: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    color: theme.colors.textFaint,
+    fontWeight: 800,
+  },
+  reasonText: {
     color: theme.colors.textDim,
-    fontSize: 13,
-    marginBottom: 8,
+    fontSize: 14,
     lineHeight: 1.45,
+    fontWeight: 700,
   },
-  meta: {
+};
+
+const metaRow = {
+  wrap: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    flexWrap: "wrap",
+    marginTop: 8,
+  },
+  target: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.04)",
     color: theme.colors.textDim,
-    fontSize: 13,
-    lineHeight: 1.45,
+    fontSize: 12,
+    fontWeight: 800,
+    letterSpacing: 0.4,
   },
-  tagBlocked: {
+};
+
+const severityTag = {
+  blocked: {
+    display: "inline-flex",
+    alignItems: "center",
     padding: "6px 10px",
     borderRadius: 999,
     border: `1px solid ${theme.colors.dangerBorder}`,
@@ -437,7 +627,9 @@ const cards = {
     fontSize: 11,
     letterSpacing: 0.8,
   },
-  tagWarn: {
+  warning: {
+    display: "inline-flex",
+    alignItems: "center",
     padding: "6px 10px",
     borderRadius: 999,
     border: `1px solid rgba(124,58,237,.35)`,
@@ -446,13 +638,6 @@ const cards = {
     fontWeight: 900,
     fontSize: 11,
     letterSpacing: 0.8,
-  },
-};
-
-const anim = {
-  wrap: {
-    animation: "hcFadeIn .22s ease",
-    willChange: "transform, opacity",
   },
 };
 
