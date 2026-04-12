@@ -187,6 +187,13 @@ export default function Chat() {
                     <>
                       {thread.map((m) => {
                         const mine = String(m.sender_id) === String(profile?.id);
+
+                        const senderName = mine
+                          ? profile?.full_name || profile?.name || "Me"
+                          : activeTrainer?.full_name || "Trainer";
+
+                        const senderInitial = senderName?.slice(0, 1)?.toUpperCase() || "?";
+
                         return (
                           <div
                             key={m.id}
@@ -196,9 +203,23 @@ export default function Chat() {
                               marginBottom: 10,
                             }}
                           >
-                            <div style={{ ...p.bubble, ...(mine ? p.mine : p.theirs) }}>
-                              <div style={{ whiteSpace: "pre-wrap" }}>{m.content}</div>
-                              <div style={p.time}>{new Date(m.sent_at).toLocaleString()}</div>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "flex-end",
+                                gap: 8,
+                                flexDirection: mine ? "row-reverse" : "row",
+                                maxWidth: "78%",
+                              }}
+                            >
+                              <div style={mine ? p.msgAvatarMine : p.msgAvatarTheirs}>
+                                {senderInitial}
+                              </div>
+
+                              <div style={{ ...p.bubble, ...(mine ? p.mine : p.theirs) }}>
+                                <div style={{ whiteSpace: "pre-wrap" }}>{m.content}</div>
+                                <div style={p.time}>{new Date(m.sent_at).toLocaleString()}</div>
+                              </div>
                             </div>
                           </div>
                         );
@@ -452,6 +473,34 @@ const p = {
   },
 
   theirs: {},
+
+  msgAvatarMine: {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    background: "rgba(0,245,212,.12)",
+    border: "1px solid rgba(0,245,212,.28)",
+    display: "grid",
+    placeItems: "center",
+    fontWeight: 950,
+    color: theme.colors.primary,
+    flexShrink: 0,
+    boxShadow: "0 8px 20px rgba(0,0,0,.25)",
+  },
+
+  msgAvatarTheirs: {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    background: "rgba(255,255,255,.06)",
+    border: `1px solid ${theme.colors.borderSoft}`,
+    display: "grid",
+    placeItems: "center",
+    fontWeight: 950,
+    color: theme.colors.text,
+    flexShrink: 0,
+    boxShadow: "0 8px 20px rgba(0,0,0,.25)",
+  },
 
   time: { opacity: 0.75, fontSize: 11, marginTop: 6, color: theme.colors.textDim },
 

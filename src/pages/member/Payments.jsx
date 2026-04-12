@@ -55,13 +55,20 @@ export default function Payments() {
     [selectedTier]
   );
 
-  // ✅ السعر النهائي اللي رح نعرضه (من الباك إذا موجود) وإلا من TIERS
+  // ✅ السعر النهائي من الباك إذا موجود، وإلا fallback من الواجهة
   const finalPrice = useMemo(() => {
     if (!selectedTier) return 0;
     const fromApi = plansMap?.[selectedTier]?.price;
     if (typeof fromApi === "number") return fromApi;
     return selectedPlan?.price ?? 0;
   }, [plansMap, selectedTier, selectedPlan]);
+
+  // ✅ هل الخطة المختارة موجودة فعلاً من الباك؟
+  const isSelectedPlanAvailable = useMemo(() => {
+    if (!goal) return false;
+    if (!plansMap) return false;
+    return !!plansMap[selectedTier];
+  }, [goal, plansMap, selectedTier]);
 
   const closeCheckout = () => {
     if (loading) return;
@@ -100,8 +107,11 @@ export default function Payments() {
 
       setPlansMap(map);
     } catch (e) {
-      setMsg("❌ Failed to load plans for the selected goal.");
       setPlansMap(null);
+      setMsg(
+        e?.response?.data?.message ||
+          "❌ Failed to load plans from database. Payment is blocked."
+      );
     } finally {
       setPlansLoading(false);
     }
@@ -127,9 +137,15 @@ export default function Payments() {
       return;
     }
 
-    // ✅ تأكد إن الباك رجّع الخطة لهذا الهدف
-    if (plansMap && !plansMap?.[selectedTier]) {
-      setMsg("❌ الخطة غير متاحة لهذا الهدف.");
+    // ✅ منع الدفع إذا الخطط ما انحملت من الباك
+    if (!plansMap) {
+      setMsg("❌ لا يمكن إتمام الدفع لأن بيانات الخطة غير موجودة في قاعدة البيانات.");
+      return;
+    }
+
+    // ✅ منع الدفع إذا الباقة المختارة غير موجودة بالخطة
+    if (!plansMap[selectedTier]) {
+      setMsg("❌ الخطة المختارة غير موجودة في قاعدة البيانات.");
       return;
     }
 
@@ -145,10 +161,9 @@ export default function Payments() {
     setMsg("");
 
     try {
-      // ✅ متوافق مع الباك بعد التعديل: goal + plan_key
       await api.post("/member/subscribe", {
-        goal, // cutting/bulking
-        plan_key: selectedTier, // bronze/silver/gold
+        goal,
+        plan_key: selectedTier,
         payment_method: method,
       });
 
@@ -165,7 +180,6 @@ export default function Payments() {
 
   return (
     <div style={styles.page}>
-      {/* نفس جو صفحات الـ auth */}
       <div style={ui.bgGrid} />
       <div style={ui.glowTop} />
       <div style={ui.glowBottom} />
@@ -217,7 +231,6 @@ export default function Payments() {
         </div>
       </div>
 
-      {/* ✅ CHECKOUT MODAL */}
       {open && selectedPlan && (
         <div style={modal.backdrop} onClick={closeCheckout}>
           <div style={modal.modal} onClick={(e) => e.stopPropagation()}>
@@ -248,7 +261,7 @@ export default function Payments() {
                   disabled={plansLoading || loading}
                   type="button"
                 >
-                 (Cutting)
+                  (Cutting)
                 </button>
 
                 <button
@@ -257,15 +270,17 @@ export default function Payments() {
                   disabled={plansLoading || loading}
                   type="button"
                 >
-                 (Bulking)
+                  (Bulking)
                 </button>
               </div>
 
               <div style={{ marginTop: 10, fontSize: 13, color: theme.colors.textDim }}>
                 {plansLoading
                   ? "⏳ Loading plan from database..."
-                  : goal
-                  ? "✅ Goal selected. Plan will be assigned based on your tier."
+                  : goal && isSelectedPlanAvailable
+                  ? "✅ Goal selected. Plan exists in database."
+                  : goal && !plansLoading && !isSelectedPlanAvailable
+                  ? "❌ Selected plan is unavailable in database."
                   : "       "}
               </div>
             </div>
@@ -341,14 +356,20 @@ export default function Payments() {
             </div>
 
             <button
-              style={modal.payBtn(loading || plansLoading || !goal)}
+              style={modal.payBtn(
+                loading || plansLoading || !goal || !isSelectedPlanAvailable
+              )}
               onClick={pay}
-              disabled={loading || plansLoading || !goal}
+              disabled={loading || plansLoading || !goal || !isSelectedPlanAvailable}
             >
               {loading
                 ? "Processing..."
                 : plansLoading
                 ? "Loading plan..."
+                : !goal
+                ? "Select goal first"
+                : !isSelectedPlanAvailable
+                ? "Plan unavailable"
                 : `Pay $${finalPrice}`}
             </button>
           </div>

@@ -26,6 +26,22 @@ export default function Meals() {
     [dayGroups]
   );
 
+  const dayTotals = useMemo(() => {
+    const allItems = TIMES.flatMap((time) => dayGroups?.[time] || []);
+
+    return allItems.reduce(
+      (acc, item) => {
+        acc.grams += Number(item?.grams || 0);
+        acc.calories += Number(item?.calories || 0);
+        acc.protein += Number(item?.protein || 0);
+        acc.carbs += Number(item?.carbs || 0);
+        acc.fats += Number(item?.fats || 0);
+        return acc;
+      },
+      { grams: 0, calories: 0, protein: 0, carbs: 0, fats: 0 }
+    );
+  }, [dayGroups]);
+
   const handleDayChange = (d) => {
     setDay(d);
     setAnimKey((k) => k + 1);
@@ -78,6 +94,29 @@ export default function Meals() {
                   </div>
                 ) : (
                   <div style={{ marginTop: 16, display: "grid", gap: 18 }}>
+                    <div style={totals.wrap}>
+                      <div style={totals.card}>
+                        <span style={totals.label}>Total Grams</span>
+                        <span style={totals.value}>{dayTotals.grams} g</span>
+                      </div>
+                      <div style={totals.card}>
+                        <span style={totals.label}>Total Kcal</span>
+                        <span style={totals.value}>{dayTotals.calories} kcal</span>
+                      </div>
+                      <div style={totals.card}>
+                        <span style={totals.label}>Total Protein</span>
+                        <span style={totals.value}>{dayTotals.protein} g</span>
+                      </div>
+                      <div style={totals.card}>
+                        <span style={totals.label}>Total Carbs</span>
+                        <span style={totals.value}>{dayTotals.carbs} g</span>
+                      </div>
+                      <div style={totals.card}>
+                        <span style={totals.label}>Total Fats</span>
+                        <span style={totals.value}>{dayTotals.fats} g</span>
+                      </div>
+                    </div>
+
                     {TIMES.map((time) => {
                       const items = dayGroups?.[time] || [];
                       if (!items.length) return null;
@@ -138,18 +177,31 @@ export default function Meals() {
                                       </span>
                                     </div>
 
+                                    <div style={gramsRow.wrap}>
+                                      <span style={gramsRow.label}>Portion</span>
+                                      <span style={gramsRow.value}>
+                                        {m.grams ?? "-"} {m.grams ? "g" : ""}
+                                      </span>
+                                    </div>
+
                                     <div style={macroBox.wrap}>
                                       <div style={macroBox.item}>
                                         <span style={macroBox.label}>Protein</span>
-                                        <span style={macroBox.valuePrimary}>{m.protein ?? "-"}</span>
+                                        <span style={macroBox.valuePrimary}>
+                                          {m.protein ?? "-"} {m.protein ? "g" : ""}
+                                        </span>
                                       </div>
                                       <div style={macroBox.item}>
                                         <span style={macroBox.label}>Carbs</span>
-                                        <span style={macroBox.valuePurple}>{m.carbs ?? "-"}</span>
+                                        <span style={macroBox.valuePurple}>
+                                          {m.carbs ?? "-"} {m.carbs ? "g" : ""}
+                                        </span>
                                       </div>
                                       <div style={macroBox.item}>
                                         <span style={macroBox.label}>Fats</span>
-                                        <span style={macroBox.valueLight}>{m.fats ?? "-"}</span>
+                                        <span style={macroBox.valueLight}>
+                                          {m.fats ?? "-"} {m.fats ? "g" : ""}
+                                        </span>
                                       </div>
                                     </div>
                                   </div>
@@ -271,6 +323,34 @@ if (typeof document !== "undefined" && !document.getElementById("meals-anim-styl
   `;
   document.head.appendChild(style);
 }
+
+const totals = {
+  wrap: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+    gap: 12,
+  },
+  card: {
+    padding: "12px 14px",
+    borderRadius: 16,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.04)",
+    display: "grid",
+    gap: 6,
+  },
+  label: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    color: theme.colors.textFaint,
+    fontWeight: 800,
+  },
+  value: {
+    color: theme.colors.text,
+    fontWeight: 900,
+    fontSize: 16,
+  },
+};
 
 const section = {
   wrap: {
@@ -420,6 +500,32 @@ const calorie = {
     letterSpacing: 0.5,
     whiteSpace: "nowrap",
     flexShrink: 0,
+  },
+};
+
+const gramsRow = {
+  wrap: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  label: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    color: theme.colors.textFaint,
+    fontWeight: 800,
+  },
+  value: {
+    display: "inline-block",
+    padding: "6px 10px",
+    borderRadius: 999,
+    background: "rgba(255,255,255,.05)",
+    border: `1px solid ${theme.colors.border}`,
+    color: theme.colors.text,
+    fontWeight: 900,
+    fontSize: 12,
   },
 };
 

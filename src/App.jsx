@@ -20,6 +20,7 @@ import Equipment from "./pages/member/Equipment";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Chat from "./pages/member/Chat";
+import ProgressPhotos from "./pages/member/ProgressPhotos";
 
 function App() {
   const { user, profile, loading } = useAuth();
@@ -67,7 +68,10 @@ function App() {
           element={<Navigate to={user ? authedRedirectTo : "/login"} replace />}
         />
 
-        {/* Member area with sidebar */}
+        {/* Optional landing */}
+        <Route path="/landing" element={<MainLanding />} />
+
+        {/* Member area */}
         <Route
           path="/member"
           element={
@@ -80,6 +84,7 @@ function App() {
           <Route path="workouts" element={<Workouts />} />
           <Route path="meals" element={<Meals />} />
           <Route path="health" element={<HealthConditions />} />
+          <Route path="progress-photos" element={<ProgressPhotos />} />
           <Route path="trainers" element={<Trainers />} />
           <Route path="booking" element={<Booking />} />
           <Route path="payments" element={<Payments />} />

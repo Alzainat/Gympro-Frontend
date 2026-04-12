@@ -17,11 +17,11 @@ export default function ForgotPassword() {
 
     try {
       const res = await forgotPassword({ email });
+      setError("");
       setMessage(res.message || "Password reset link sent successfully.");
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-          JSON.stringify(err?.response?.data) ||
           err?.message ||
           "Failed to send reset link."
       );

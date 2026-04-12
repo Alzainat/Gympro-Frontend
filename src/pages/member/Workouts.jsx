@@ -10,12 +10,36 @@ export default function Workouts() {
   const [loading, setLoading] = useState(true);
   const [day, setDay] = useState("Monday");
   const [animKey, setAnimKey] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
+  const [saving, setSaving] = useState(false);
+
+  const [logModal, setLogModal] = useState({
+    open: false,
+    routine: null,
+    exercise: null,
+  });
+
+  const [form, setForm] = useState({
+    weight: "",
+    sets_done: "",
+    reps_done: "",
+    note: "",
+  });
+
+  const fetchWorkouts = async (dateValue = selectedDate) => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/member/workouts?date=${dateValue}`);
+      setData(res.data || {});
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    api.get("/member/workouts")
-      .then((res) => setData(res.data || {}))
-      .finally(() => setLoading(false));
-  }, []);
+    fetchWorkouts(selectedDate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate]);
 
   const routines = useMemo(() => data?.[day] || [], [data, day]);
 
@@ -30,6 +54,63 @@ export default function Workouts() {
     return `${API_BASE}/storage/${path}`;
   };
 
+  const openLogModal = (routine, exercise) => {
+    setLogModal({
+      open: true,
+      routine,
+      exercise,
+    });
+
+    setForm({
+      weight: exercise?.member_log?.weight ?? "",
+      sets_done: exercise?.member_log?.sets_done ?? "",
+      reps_done: exercise?.member_log?.reps_done ?? "",
+      note: exercise?.member_log?.note ?? "",
+    });
+  };
+
+  const closeLogModal = () => {
+    setLogModal({
+      open: false,
+      routine: null,
+      exercise: null,
+    });
+
+    setForm({
+      weight: "",
+      sets_done: "",
+      reps_done: "",
+      note: "",
+    });
+  };
+
+  const saveLog = async () => {
+    if (!logModal.routine || !logModal.exercise) return;
+
+    try {
+      setSaving(true);
+
+      await api.post("/member/workouts/log", {
+        routine_id: logModal.routine.routine_id,
+        routine_exercise_id: logModal.exercise.routine_exercise_id,
+        exercise_id: logModal.exercise.exercise_id,
+        workout_date: selectedDate,
+        day_of_week: logModal.exercise.day_of_week,
+        weight: form.weight === "" ? null : Number(form.weight),
+        sets_done: form.sets_done === "" ? null : Number(form.sets_done),
+        reps_done: form.reps_done === "" ? null : Number(form.reps_done),
+        note: form.note?.trim() ? form.note.trim() : null,
+      });
+
+      await fetchWorkouts(selectedDate);
+      closeLogModal();
+    } catch (err) {
+      alert(err?.response?.data?.message || "Failed to save workout log");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div style={page.page}>
       <div style={ui.bgGrid} />
@@ -42,6 +123,18 @@ export default function Workouts() {
             <h2 style={page.title}>Workouts</h2>
             <div style={page.badge}>{day.slice(0, 3).toUpperCase()}</div>
           </div>
+
+          {!loading && Object.keys(data || {}).length > 0 && (
+            <div style={page.dateWrap}>
+              <label style={page.dateLabel}>Workout Date</label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                style={page.dateInput}
+              />
+            </div>
+          )}
 
           {loading ? (
             <div style={page.dim}>Loading workouts...</div>
@@ -74,7 +167,12 @@ export default function Workouts() {
                     {routines.map((routine) => (
                       <div key={routine.routine_id} style={routineCard.wrap}>
                         <div style={routineCard.head}>
-                          <h3 style={routineCard.name}>{routine.routine_name}</h3>
+                          <div style={{ minWidth: 0 }}>
+                            <h3 style={routineCard.name}>{routine.routine_name}</h3>
+                            {routine.description ? (
+                              <div style={routineCard.desc}>{routine.description}</div>
+                            ) : null}
+                          </div>
                           <div style={routineCard.line} />
                         </div>
 
@@ -84,7 +182,7 @@ export default function Workouts() {
 
                             return (
                               <div
-                                key={`${x.exercise_id}-${idx}`}
+                                key={`${x.routine_exercise_id}-${x.exercise_id}-${idx}`}
                                 style={exerciseCard.wrap}
                                 onMouseEnter={(e) => {
                                   e.currentTarget.style.transform = "translateY(-3px)";
@@ -125,6 +223,10 @@ export default function Workouts() {
                                         <span style={difficulty.tag(x.difficulty)}>
                                           {x.difficulty ?? "-"}
                                         </span>
+
+                                        {x.equipment ? (
+                                          <span style={metaRow.target}>{x.equipment}</span>
+                                        ) : null}
                                       </div>
                                     </div>
                                   </div>
@@ -147,6 +249,57 @@ export default function Workouts() {
                                       </span>
                                     </div>
                                   </div>
+
+                                  {x.notes ? (
+                                    <div style={exerciseCard.coachNote}>
+                                      <span style={exerciseCard.coachNoteLabel}>Coach Note:</span>{" "}
+                                      {x.notes}
+                                    </div>
+                                  ) : null}
+
+                                  {x.member_log ? (
+                                    <div style={memberLog.wrap}>
+                                      <div style={memberLog.title}>Your Log</div>
+                                      <div style={memberLog.grid}>
+                                        <div style={memberLog.item}>
+                                          <span style={memberLog.label}>Weight</span>
+                                          <span style={memberLog.value}>
+                                            {x.member_log.weight ?? "-"} {x.member_log.weight != null ? "kg" : ""}
+                                          </span>
+                                        </div>
+
+                                        <div style={memberLog.item}>
+                                          <span style={memberLog.label}>Sets Done</span>
+                                          <span style={memberLog.value}>
+                                            {x.member_log.sets_done ?? "-"}
+                                          </span>
+                                        </div>
+
+                                        <div style={memberLog.item}>
+                                          <span style={memberLog.label}>Reps Done</span>
+                                          <span style={memberLog.value}>
+                                            {x.member_log.reps_done ?? "-"}
+                                          </span>
+                                        </div>
+                                      </div>
+
+                                      {x.member_log.note ? (
+                                        <div style={memberLog.note}>
+                                          <span style={memberLog.noteLabel}>Note:</span>{" "}
+                                          {x.member_log.note}
+                                        </div>
+                                      ) : null}
+                                    </div>
+                                  ) : null}
+
+                                  <div style={actionRow.wrap}>
+                                    <button
+                                      style={actionRow.primaryBtn}
+                                      onClick={() => openLogModal(routine, x)}
+                                    >
+                                      {x.member_log ? "Edit Log" : "Add Log"}
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             );
@@ -161,6 +314,84 @@ export default function Workouts() {
           )}
         </div>
       </div>
+
+      {logModal.open && (
+        <div style={modal.backdrop} onClick={closeLogModal}>
+          <div style={modal.box} onClick={(e) => e.stopPropagation()}>
+            <div style={modal.header}>
+              <div>
+                <h3 style={modal.title}>
+                  {logModal.exercise?.exercise_name || "Exercise"} Log
+                </h3>
+                <div style={modal.subtitle}>
+                  {selectedDate} • {logModal.exercise?.day_of_week || ""}
+                </div>
+              </div>
+            </div>
+
+            <div style={modal.grid}>
+              <div style={modal.field}>
+                <label style={modal.label}>Weight (kg)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={form.weight}
+                  onChange={(e) => setForm((s) => ({ ...s, weight: e.target.value }))}
+                  placeholder="e.g. 35"
+                  style={ui.input}
+                />
+              </div>
+
+              <div style={modal.fieldRow}>
+                <div style={modal.field}>
+                  <label style={modal.label}>Sets Done</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={form.sets_done}
+                    onChange={(e) => setForm((s) => ({ ...s, sets_done: e.target.value }))}
+                    placeholder="e.g. 4"
+                    style={ui.input}
+                  />
+                </div>
+
+                <div style={modal.field}>
+                  <label style={modal.label}>Reps Done</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={form.reps_done}
+                    onChange={(e) => setForm((s) => ({ ...s, reps_done: e.target.value }))}
+                    placeholder="e.g. 12"
+                    style={ui.input}
+                  />
+                </div>
+              </div>
+
+              <div style={modal.field}>
+                <label style={modal.label}>Note</label>
+                <textarea
+                  value={form.note}
+                  onChange={(e) => setForm((s) => ({ ...s, note: e.target.value }))}
+                  placeholder="Write how the set felt, what weight you used, any difficulty, pain, or progress..."
+                  style={{ ...ui.input, minHeight: 120, resize: "vertical" }}
+                />
+              </div>
+            </div>
+
+            <div style={modal.actions}>
+              <button style={modal.saveBtn} onClick={saveLog} disabled={saving}>
+                {saving ? "Saving..." : "Save Log"}
+              </button>
+
+              <button style={modal.cancelBtn} onClick={closeLogModal} disabled={saving}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -224,6 +455,25 @@ const page = {
     fontWeight: 900,
     marginBottom: 6,
   },
+  dateWrap: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+    marginTop: 8,
+    marginBottom: 10,
+    maxWidth: 220,
+  },
+  dateLabel: {
+    fontSize: 12,
+    fontWeight: 800,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    color: theme.colors.textDim,
+  },
+  dateInput: {
+    ...ui.input,
+    padding: "10px 12px",
+  },
 };
 
 const tabs = {
@@ -284,6 +534,12 @@ const routineCard = {
     fontSize: 16,
     fontWeight: 900,
     letterSpacing: 0.3,
+  },
+  desc: {
+    marginTop: 6,
+    color: theme.colors.textDim,
+    fontSize: 13,
+    lineHeight: 1.5,
   },
   line: {
     height: 1,
@@ -369,6 +625,19 @@ const exerciseCard = {
     fontWeight: 900,
     color: theme.colors.text,
     lineHeight: 1.2,
+  },
+  coachNote: {
+    padding: "10px 12px",
+    borderRadius: 14,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.03)",
+    color: theme.colors.textDim,
+    fontSize: 13,
+    lineHeight: 1.5,
+  },
+  coachNoteLabel: {
+    color: theme.colors.text,
+    fontWeight: 800,
   },
 };
 
@@ -459,5 +728,162 @@ const stats = {
     color: theme.colors.text,
     fontWeight: 900,
     fontSize: 15,
+  },
+};
+
+const memberLog = {
+  wrap: {
+    padding: 12,
+    borderRadius: 16,
+    border: `1px solid rgba(0,245,212,.18)`,
+    background: "rgba(0,245,212,.06)",
+    display: "grid",
+    gap: 10,
+  },
+  title: {
+    fontWeight: 900,
+    color: theme.colors.primary,
+    fontSize: 13,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(100px, 1fr))",
+    gap: 10,
+  },
+  item: {
+    padding: "10px 12px",
+    borderRadius: 14,
+    background: "rgba(255,255,255,.04)",
+    border: `1px solid ${theme.colors.border}`,
+    display: "grid",
+    gap: 6,
+  },
+  label: {
+    fontSize: 11,
+    color: theme.colors.textFaint,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    fontWeight: 800,
+  },
+  value: {
+    fontSize: 14,
+    fontWeight: 900,
+    color: theme.colors.text,
+  },
+  note: {
+    color: theme.colors.textDim,
+    fontSize: 13,
+    lineHeight: 1.5,
+  },
+  noteLabel: {
+    color: theme.colors.text,
+    fontWeight: 800,
+  },
+};
+
+const actionRow = {
+  wrap: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    flexWrap: "wrap",
+  },
+  primaryBtn: {
+    padding: "10px 14px",
+    borderRadius: 12,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(0,245,212,.10)",
+    color: theme.colors.primary,
+    fontWeight: 800,
+    cursor: "pointer",
+    transition: theme.motion.base,
+  },
+};
+
+const modal = {
+  backdrop: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,.55)",
+    display: "grid",
+    placeItems: "center",
+    padding: 20,
+    zIndex: 9999,
+  },
+  box: {
+    width: "100%",
+    maxWidth: 560,
+    borderRadius: theme.radius.lg,
+    background: theme.colors.card,
+    border: `1px solid ${theme.colors.border}`,
+    boxShadow: theme.shadow.card,
+    padding: 20,
+    backdropFilter: "blur(20px)",
+    color: theme.colors.text,
+  },
+  header: {
+    marginBottom: 16,
+  },
+  title: {
+    margin: 0,
+    fontSize: 20,
+    fontWeight: 900,
+  },
+  subtitle: {
+    marginTop: 8,
+    color: theme.colors.textDim,
+    fontSize: 13,
+  },
+  grid: {
+    display: "grid",
+    gap: 12,
+  },
+  field: {
+    display: "grid",
+    gap: 8,
+  },
+  fieldRow: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 12,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: 800,
+    color: theme.colors.textDim,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  actions: {
+    display: "flex",
+    gap: 12,
+    marginTop: 18,
+    flexWrap: "wrap",
+  },
+  saveBtn: {
+    flex: 1,
+    minWidth: 140,
+    padding: "14px 16px",
+    borderRadius: theme.radius.md,
+    border: "none",
+    fontWeight: 900,
+    letterSpacing: 0.8,
+    cursor: "pointer",
+    background: theme.gradients.primary,
+    color: "#061018",
+    boxShadow: theme.shadow.glow,
+  },
+  cancelBtn: {
+    flex: 1,
+    minWidth: 140,
+    padding: "14px 16px",
+    borderRadius: theme.radius.md,
+    border: `1px solid ${theme.colors.border}`,
+    fontWeight: 800,
+    cursor: "pointer",
+    background: "rgba(255,255,255,.05)",
+    color: theme.colors.text,
   },
 };

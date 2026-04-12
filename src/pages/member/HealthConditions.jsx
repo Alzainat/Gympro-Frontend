@@ -1,19 +1,35 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
 import { theme, ui } from "../../theme/uiTheme";
 
-
+const API_BASE =
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_APP_URL ||
+  "http://127.0.0.1:8000";
 
 export default function HealthConditions() {
-  const [text, setText] = useState("");
+  const [form, setForm] = useState({
+    type: "injury",
+    name: "",
+    severity: "medium",
+    notes: "",
+  });
+
+  const [items, setItems] = useState([]);
   const [blocked, setBlocked] = useState([]);
   const [warnings, setWarnings] = useState([]);
-  const [loading, setLoading] = useState(false);
 
-  // لإعادة تشغيل الأنيميشن بعد كل Check
+  const [loadingSave, setLoadingSave] = useState(false);
+  const [loadingCheck, setLoadingCheck] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+
   const [animKey, setAnimKey] = useState(0);
 
-  const canSubmit = useMemo(() => text.trim().length > 0 && !loading, [text, loading]);
+  const canSave = useMemo(() => {
+    return form.type && form.name.trim().length > 0 && form.severity && !loadingSave;
+  }, [form, loadingSave]);
+
+  const hasResults = blocked.length > 0 || warnings.length > 0;
 
   const getImageUrl = (path) => {
     if (!path) return null;
@@ -22,35 +38,90 @@ export default function HealthConditions() {
     return `${API_BASE}/${path}`;
   };
 
-  const check = async () => {
-    if (!text.trim()) return;
-    setLoading(true);
+  const loadConditions = async () => {
+    try {
+      setPageLoading(true);
+      const res = await api.get("/member/health-conditions");
+      setItems(res.data?.data || []);
+    } catch (e) {
+      console.error(e);
+      setItems([]);
+    } finally {
+      setPageLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadConditions();
+  }, []);
+
+  const onChange = (key, value) => {
+    setForm((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const saveCondition = async () => {
+    if (!canSave) return;
+
+    setLoadingSave(true);
 
     try {
-      const res = await api.post("/member/health-conditions/check", {
-        conditions: [text.trim()],
+      await api.post("/member/health-conditions", {
+        type: form.type,
+        name: form.name.trim(),
+        severity: form.severity,
+        notes: form.notes.trim() || null,
       });
 
+      setForm({
+        type: "injury",
+        name: "",
+        severity: "medium",
+        notes: "",
+      });
+
+      await loadConditions();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingSave(false);
+    }
+  };
+
+  const deleteCondition = async (id) => {
+    try {
+      await api.delete(`/member/health-conditions/${id}`);
+      await loadConditions();
+      await checkExercises();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const checkExercises = async () => {
+    setLoadingCheck(true);
+
+    try {
+      const res = await api.post("/member/health-conditions/check", {});
       setBlocked(res.data?.blocked_exercises || []);
       setWarnings(res.data?.warnings || []);
       setAnimKey((k) => k + 1);
     } catch (e) {
+      console.error(e);
       setBlocked([]);
       setWarnings([]);
-      console.error(e);
     } finally {
-      setLoading(false);
+      setLoadingCheck(false);
     }
   };
 
-  const reset = () => {
-    setText("");
+  const resetResults = () => {
     setBlocked([]);
     setWarnings([]);
     setAnimKey((k) => k + 1);
   };
-
-  const hasResults = blocked.length > 0 || warnings.length > 0;
 
   return (
     <div style={page.page}>
@@ -64,37 +135,155 @@ export default function HealthConditions() {
             <div>
               <h2 style={page.title}>Health Conditions</h2>
               <div style={page.subtitle}>
-                Enter an injury or condition and we’ll highlight exercises to avoid or perform with caution.
+                Add your injury, allergy, or condition, save it to your profile,
+                then check which exercises are blocked or require caution.
               </div>
             </div>
             <div style={page.badge}>Safety Check</div>
           </div>
 
-          <div style={form.wrap}>
-            <label style={form.label}>Condition / Injury</label>
-            <textarea
-              style={form.textarea}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
+          <div style={formBox.wrap}>
+            <label style={formBox.label}>Type</label>
+            <div style={formBox.radioRow}>
+              {["injury", "condition", "allergy"].map((type) => (
+                <label key={type} style={formBox.radioCard(form.type === type)}>
+                  <input
+                    type="radio"
+                    name="type"
+                    value={type}
+                    checked={form.type === type}
+                    onChange={(e) => onChange("type", e.target.value)}
+                  />
+                  <span style={formBox.radioText}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </span>
+                </label>
+              ))}
+            </div>
+
+            <label style={{ ...formBox.label, marginTop: 16 }}>
+              Condition / Injury Name
+            </label>
+            <input
+              style={formBox.input}
+              value={form.name}
+              onChange={(e) => onChange("name", e.target.value)}
               placeholder="Examples: knee injury, shoulder pain, lower back pain..."
             />
 
-            <div style={form.actions}>
-              <button style={form.primary(!canSubmit)} disabled={!canSubmit} onClick={check}>
-                {loading ? "Checking..." : "Check Exercises"}
+            <label style={{ ...formBox.label, marginTop: 16 }}>Severity</label>
+            <div style={formBox.radioRow}>
+              {["low", "medium", "high"].map((severity) => (
+                <label
+                  key={severity}
+                  style={formBox.radioCard(form.severity === severity)}
+                >
+                  <input
+                    type="radio"
+                    name="severity"
+                    value={severity}
+                    checked={form.severity === severity}
+                    onChange={(e) => onChange("severity", e.target.value)}
+                  />
+                  <span style={formBox.radioText}>
+                    {severity.charAt(0).toUpperCase() + severity.slice(1)}
+                  </span>
+                </label>
+              ))}
+            </div>
+
+            <label style={{ ...formBox.label, marginTop: 16 }}>Notes</label>
+            <textarea
+              style={formBox.textarea}
+              value={form.notes}
+              onChange={(e) => onChange("notes", e.target.value)}
+              placeholder="Extra notes for the trainer..."
+            />
+
+            <div style={formBox.actions}>
+              <button
+                style={formBox.primary(!canSave)}
+                disabled={!canSave}
+                onClick={saveCondition}
+              >
+                {loadingSave ? "Saving..." : "Save Condition"}
               </button>
 
-              <button style={form.secondary(loading)} disabled={loading} onClick={reset}>
-                Reset
+              <button
+                style={formBox.secondary(loadingCheck)}
+                disabled={loadingCheck}
+                onClick={checkExercises}
+              >
+                {loadingCheck ? "Checking..." : "Check Exercises"}
+              </button>
+
+              <button
+                style={formBox.secondary(false)}
+                onClick={resetResults}
+              >
+                Reset Results
               </button>
             </div>
 
-            <div style={form.helperRow}>
-              <span style={form.helperDot} />
-              <span style={form.helperText}>
-                Tip: be specific (e.g., “ACL injury”, “rotator cuff pain”) for better matches.
+            <div style={formBox.helperRow}>
+              <span style={formBox.helperDot} />
+              <span style={formBox.helperText}>
+                The check uses your saved conditions from the database.
               </span>
             </div>
+          </div>
+
+          <div style={section.wrap}>
+            <div style={section.head}>
+              <div style={section.title}>Saved Conditions</div>
+              <div style={section.line} />
+              <div style={section.count}>{items.length}</div>
+            </div>
+
+            {pageLoading ? (
+              <div style={empty.box}>
+                <div style={empty.title}>Loading...</div>
+              </div>
+            ) : items.length === 0 ? (
+              <div style={empty.box}>
+                <div style={empty.title}>No saved conditions yet.</div>
+                <div style={empty.sub}>
+                  Add a condition above, then click Save Condition.
+                </div>
+              </div>
+            ) : (
+              <div style={savedList.wrap}>
+                {items.map((item) => (
+                  <div key={item.id} style={savedCard.wrap}>
+                    <div style={savedCard.topRow}>
+                      <div style={savedCard.left}>
+                        <div style={savedCard.name}>{item.name}</div>
+
+                        <div style={savedCard.metaRow}>
+                          <span style={savedCard.type}>{item.type}</span>
+                          <span style={savedCard.severity(item.severity)}>
+                            {item.severity}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        style={savedCard.deleteBtn}
+                        onClick={() => deleteCondition(item.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+
+                    {item.notes ? (
+                      <div style={savedCard.notes}>
+                        {item.notes}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div key={animKey} style={anim.wrap}>
@@ -109,7 +298,9 @@ export default function HealthConditions() {
               {blocked.length === 0 ? (
                 <div style={empty.box}>
                   <div style={empty.title}>No blocked exercises found.</div>
-                  <div style={empty.sub}>If you expected results, try a more specific condition.</div>
+                  <div style={empty.sub}>
+                    Save your conditions, then click Check Exercises.
+                  </div>
                 </div>
               ) : (
                 <div style={exerciseList.wrap}>
@@ -192,7 +383,9 @@ export default function HealthConditions() {
               {warnings.length === 0 ? (
                 <div style={empty.box}>
                   <div style={empty.title}>No warnings found.</div>
-                  <div style={empty.sub}>You’re good to go based on the current input.</div>
+                  <div style={empty.sub}>
+                    You’re good to go based on the current saved conditions.
+                  </div>
                 </div>
               ) : (
                 <div style={exerciseList.wrap}>
@@ -262,9 +455,9 @@ export default function HealthConditions() {
               )}
             </div>
 
-            {!hasResults && !loading ? (
+            {!hasResults && !loadingCheck ? (
               <div style={{ ...page.note, marginTop: 14 }}>
-                No results yet — enter a condition and click <b>Check Exercises</b>.
+                No results yet — save conditions, then click <b>Check Exercises</b>.
               </div>
             ) : null}
           </div>
@@ -334,7 +527,7 @@ const page = {
   },
 };
 
-const form = {
+const formBox = {
   wrap: {
     padding: 16,
     borderRadius: theme.radius.lg,
@@ -349,6 +542,36 @@ const form = {
     textTransform: "uppercase",
     fontWeight: 900,
     marginBottom: 8,
+  },
+  radioRow: {
+    display: "flex",
+    gap: 10,
+    flexWrap: "wrap",
+  },
+  radioCard: (active) => ({
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "10px 14px",
+    borderRadius: 14,
+    border: `1px solid ${active ? theme.colors.primary : theme.colors.border}`,
+    background: active ? "rgba(0,245,212,.10)" : "rgba(255,255,255,.03)",
+    cursor: "pointer",
+    fontWeight: 700,
+  }),
+  radioText: {
+    color: theme.colors.text,
+    textTransform: "capitalize",
+  },
+  input: {
+    width: "100%",
+    padding: "12px 14px",
+    borderRadius: theme.radius.md,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(11,18,32,.75)",
+    color: theme.colors.text,
+    outline: "none",
+    boxSizing: "border-box",
   },
   textarea: {
     width: "100%",
@@ -482,6 +705,82 @@ const empty = {
     color: theme.colors.textDim,
     fontSize: 13,
     lineHeight: 1.4,
+  },
+};
+
+const savedList = {
+  wrap: {
+    display: "grid",
+    gap: 12,
+  },
+};
+
+const savedCard = {
+  wrap: {
+    padding: 14,
+    borderRadius: 16,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.03)",
+  },
+  topRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  left: {
+    minWidth: 0,
+    flex: 1,
+  },
+  name: {
+    fontSize: 18,
+    fontWeight: 900,
+    marginBottom: 8,
+    color: theme.colors.text,
+  },
+  metaRow: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  type: {
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.04)",
+    textTransform: "capitalize",
+    fontSize: 12,
+    fontWeight: 800,
+    color: theme.colors.textDim,
+  },
+  severity: (severity) => ({
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: `1px solid ${theme.colors.border}`,
+    background:
+      severity === "high"
+        ? "rgba(239,68,68,.14)"
+        : severity === "medium"
+        ? "rgba(245,158,11,.14)"
+        : "rgba(34,197,94,.14)",
+    textTransform: "capitalize",
+    fontSize: 12,
+    fontWeight: 800,
+    color: theme.colors.text,
+  }),
+  notes: {
+    marginTop: 12,
+    color: theme.colors.textDim,
+    lineHeight: 1.5,
+  },
+  deleteBtn: {
+    padding: "8px 12px",
+    borderRadius: 10,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(239,68,68,.10)",
+    color: "#fca5a5",
+    cursor: "pointer",
+    fontWeight: 800,
   },
 };
 
@@ -641,7 +940,6 @@ const severityTag = {
   },
 };
 
-// inject keyframes once
 if (typeof document !== "undefined" && !document.getElementById("hc-anim-style")) {
   const style = document.createElement("style");
   style.id = "hc-anim-style";

@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { theme } from "../theme/uiTheme"; // عدّل المسار
+import { theme } from "../theme/uiTheme";
 
 const links = [
   { to: "/member", label: "Home" },
   { to: "/member/workouts", label: "Workouts" },
   { to: "/member/meals", label: "Meals" },
   { to: "/member/health", label: "Health Condition" },
+  { to: "/member/progress-photos", label: "Progress Photos" },
   { to: "/member/trainers", label: "Trainers" },
   { to: "/member/booking", label: "Booking" },
   { to: "/member/chat", label: "Chat" },
