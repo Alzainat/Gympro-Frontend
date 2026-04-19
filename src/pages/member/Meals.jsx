@@ -4,18 +4,121 @@ import { theme, ui } from "../../theme/uiTheme";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const TIMES = ["breakfast", "lunch", "dinner", "snack", "other"];
-
 const API_BASE = "http://127.0.0.1:8000";
+
+function PlanTimer({ plan }) {
+  const [timeLeft, setTimeLeft] = useState(null);
+
+  const calculateTimeLeft = (endDate) => {
+    if (!endDate) return null;
+
+    let end;
+
+    if (String(endDate).includes("T")) {
+      end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+    } else {
+      end = new Date(`${endDate}T23:59:59`);
+    }
+
+    const now = new Date();
+    const diff = end.getTime() - now.getTime();
+
+    if (Number.isNaN(diff)) {
+      return null;
+    }
+
+    if (diff <= 0) {
+      return {
+        expired: true,
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+      };
+    }
+
+    return {
+      expired: false,
+      days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+      minutes: Math.floor((diff / (1000 * 60)) % 60),
+      seconds: Math.floor((diff / 1000) % 60),
+    };
+  };
+
+  useEffect(() => {
+    setTimeLeft(calculateTimeLeft(plan.end_date));
+
+    const interval = setInterval(() => {
+      setTimeLeft(calculateTimeLeft(plan.end_date));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [plan.end_date]);
+
+  if (!timeLeft) return null;
+
+  return (
+    <div style={countdown.wrap}>
+      <div style={countdown.header}>
+        <div>
+          <div style={countdown.eyebrow}>WEBSITE MEAL PLAN</div>
+          <h3 style={countdown.title}>{plan.title}</h3>
+          <div style={countdown.sub}>
+            Start: <b>{String(plan.start_date || "-").slice(0, 10)}</b> | End:{" "}
+            <b>{String(plan.end_date || "-").slice(0, 10)}</b>
+          </div>
+        </div>
+      </div>
+
+      {timeLeft.expired ? (
+        <div style={countdown.expired}>This meal plan has expired.</div>
+      ) : (
+        <div style={countdown.grid}>
+          <div style={countdown.box}>
+            <span style={countdown.num}>{timeLeft.days}</span>
+            <span style={countdown.label}>Days</span>
+          </div>
+          <div style={countdown.box}>
+            <span style={countdown.num}>{timeLeft.hours}</span>
+            <span style={countdown.label}>Hours</span>
+          </div>
+          <div style={countdown.box}>
+            <span style={countdown.num}>{timeLeft.minutes}</span>
+            <span style={countdown.label}>Minutes</span>
+          </div>
+          <div style={countdown.box}>
+            <span style={countdown.num}>{timeLeft.seconds}</span>
+            <span style={countdown.label}>Seconds</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Meals() {
   const [data, setData] = useState({});
+  const [meta, setMeta] = useState({
+    selected_date: null,
+    plan_timer: null,
+  });
   const [loading, setLoading] = useState(true);
   const [day, setDay] = useState("Monday");
   const [animKey, setAnimKey] = useState(0);
 
   useEffect(() => {
     api.get("/member/meals")
-      .then((res) => setData(res.data || {}))
+      .then((res) => {
+        setData(res.data?.days || {});
+        setMeta(
+          res.data?.meta || {
+            selected_date: null,
+            plan_timer: null,
+          }
+        );
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -61,6 +164,8 @@ export default function Meals() {
 
       <div style={page.container}>
         <div style={page.card}>
+          {meta?.plan_timer && <PlanTimer plan={meta.plan_timer} />}
+
           <div style={page.headerRow}>
             <h2 style={page.title}>Meals</h2>
             <div style={page.badge}>{day.slice(0, 3).toUpperCase()}</div>
@@ -165,6 +270,16 @@ export default function Meals() {
                                     <div style={mealCard.topRow}>
                                       <div style={mealCard.titleCol}>
                                         <h3 style={mealCard.name}>{m.name ?? "-"}</h3>
+                                        <div style={mealCard.metaRow}>
+                                          <span style={mealCard.metaTag}>Source: Website</span>
+                                          <span style={mealCard.metaTag}>
+                                            Start: {m.start_date || "-"}
+                                          </span>
+                                          <span style={mealCard.metaTag}>
+                                            End: {m.end_date || "-"}
+                                          </span>
+                                        </div>
+
                                         {m.description ? (
                                           <p style={mealCard.desc}>{m.description}</p>
                                         ) : (
@@ -281,6 +396,79 @@ const page = {
   emptyTitle: {
     fontWeight: 900,
     marginBottom: 6,
+  },
+};
+
+const countdown = {
+  wrap: {
+    marginBottom: 18,
+    padding: 18,
+    borderRadius: 22,
+    border: `1px solid rgba(0,245,212,.20)`,
+    background: "linear-gradient(135deg, rgba(0,245,212,.10), rgba(124,58,237,.10))",
+    boxShadow: "0 12px 30px rgba(0,0,0,.18)",
+    display: "grid",
+    gap: 14,
+  },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+  },
+  eyebrow: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    fontWeight: 900,
+    color: theme.colors.primary,
+    marginBottom: 6,
+  },
+  title: {
+    margin: 0,
+    fontSize: 20,
+    fontWeight: 900,
+    color: theme.colors.text,
+  },
+  sub: {
+    marginTop: 8,
+    fontSize: 13,
+    color: theme.colors.textDim,
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, minmax(80px, 1fr))",
+    gap: 12,
+  },
+  box: {
+    padding: "16px 12px",
+    borderRadius: 18,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.05)",
+    display: "grid",
+    placeItems: "center",
+    gap: 8,
+  },
+  num: {
+    fontSize: 28,
+    fontWeight: 900,
+    color: theme.colors.text,
+    lineHeight: 1,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: 800,
+    color: theme.colors.textDim,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  expired: {
+    padding: "12px 14px",
+    borderRadius: 14,
+    background: "rgba(255,59,59,.10)",
+    border: `1px solid ${theme.colors.dangerBorder}`,
+    color: theme.colors.dangerText,
+    fontWeight: 800,
   },
 };
 
@@ -471,6 +659,24 @@ const mealCard = {
     fontWeight: 900,
     color: theme.colors.text,
     lineHeight: 1.2,
+  },
+  metaRow: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap",
+    marginTop: 8,
+  },
+  metaTag: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.04)",
+    color: theme.colors.textDim,
+    fontSize: 12,
+    fontWeight: 800,
+    letterSpacing: 0.4,
   },
   desc: {
     margin: "6px 0 0",

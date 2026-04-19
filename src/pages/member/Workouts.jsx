@@ -5,8 +5,106 @@ import { theme, ui } from "../../theme/uiTheme";
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const API_BASE = "http://127.0.0.1:8000";
 
+function PlanTimer({ plan }) {
+  const [timeLeft, setTimeLeft] = useState(null);
+
+  const calculateTimeLeft = (endDate) => {
+    if (!endDate) return null;
+
+    let end;
+
+    if (String(endDate).includes("T")) {
+      end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+    } else {
+      end = new Date(`${endDate}T23:59:59`);
+    }
+
+    const now = new Date();
+    const diff = end.getTime() - now.getTime();
+
+    if (Number.isNaN(diff)) {
+      return null;
+    }
+
+    if (diff <= 0) {
+      return {
+        expired: true,
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+      };
+    }
+
+    return {
+      expired: false,
+      days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+      minutes: Math.floor((diff / (1000 * 60)) % 60),
+      seconds: Math.floor((diff / 1000) % 60),
+    };
+  };
+
+  useEffect(() => {
+    setTimeLeft(calculateTimeLeft(plan.end_date));
+
+    const interval = setInterval(() => {
+      setTimeLeft(calculateTimeLeft(plan.end_date));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [plan.end_date]);
+
+  if (!timeLeft) return null;
+
+  return (
+    <div style={countdown.wrap}>
+      <div style={countdown.header}>
+        <div>
+          <div style={countdown.eyebrow}>
+            {plan.source === "trainer" ? "TRAINER PLAN" : "WEBSITE PLAN"}
+          </div>
+          <h3 style={countdown.title}>{plan.title}</h3>
+          <div style={countdown.sub}>
+            Start: <b>{String(plan.start_date || "-").slice(0, 10)}</b> | End:{" "}
+            <b>{String(plan.end_date || "-").slice(0, 10)}</b>
+          </div>
+        </div>
+      </div>
+
+      {timeLeft.expired ? (
+        <div style={countdown.expired}>This plan has expired.</div>
+      ) : (
+        <div style={countdown.grid}>
+          <div style={countdown.box}>
+            <span style={countdown.num}>{timeLeft.days}</span>
+            <span style={countdown.label}>Days</span>
+          </div>
+          <div style={countdown.box}>
+            <span style={countdown.num}>{timeLeft.hours}</span>
+            <span style={countdown.label}>Hours</span>
+          </div>
+          <div style={countdown.box}>
+            <span style={countdown.num}>{timeLeft.minutes}</span>
+            <span style={countdown.label}>Minutes</span>
+          </div>
+          <div style={countdown.box}>
+            <span style={countdown.num}>{timeLeft.seconds}</span>
+            <span style={countdown.label}>Seconds</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Workouts() {
   const [data, setData] = useState({});
+  const [meta, setMeta] = useState({
+    selected_date: null,
+    plan_timers: [],
+  });
   const [loading, setLoading] = useState(true);
   const [day, setDay] = useState("Monday");
   const [animKey, setAnimKey] = useState(0);
@@ -30,7 +128,13 @@ export default function Workouts() {
     setLoading(true);
     try {
       const res = await api.get(`/member/workouts?date=${dateValue}`);
-      setData(res.data || {});
+      setData(res.data?.days || {});
+      setMeta(
+        res.data?.meta || {
+          selected_date: null,
+          plan_timers: [],
+        }
+      );
     } finally {
       setLoading(false);
     }
@@ -119,6 +223,14 @@ export default function Workouts() {
 
       <div style={page.container}>
         <div style={page.card}>
+          {meta?.plan_timers?.length > 0 && (
+            <div style={countdownList.wrap}>
+              {meta.plan_timers.map((plan) => (
+                <PlanTimer key={plan.id} plan={plan} />
+              ))}
+            </div>
+          )}
+
           <div style={page.headerRow}>
             <h2 style={page.title}>Workouts</h2>
             <div style={page.badge}>{day.slice(0, 3).toUpperCase()}</div>
@@ -165,10 +277,23 @@ export default function Workouts() {
                 ) : (
                   <div style={{ marginTop: 16, display: "grid", gap: 16 }}>
                     {routines.map((routine) => (
-                      <div key={routine.routine_id} style={routineCard.wrap}>
+                      <div key={`${routine.member_routine_id}-${routine.routine_id}`} style={routineCard.wrap}>
                         <div style={routineCard.head}>
                           <div style={{ minWidth: 0 }}>
                             <h3 style={routineCard.name}>{routine.routine_name}</h3>
+
+                            <div style={routineCard.dateMeta}>
+                              <span style={routineCard.dateTag}>
+                                Source: {routine.source === "trainer" ? "Trainer" : "Website"}
+                              </span>
+                              <span style={routineCard.dateTag}>
+                                Start: {routine.start_date || "-"}
+                              </span>
+                              <span style={routineCard.dateTag}>
+                                End: {routine.end_date || "-"}
+                              </span>
+                            </div>
+
                             {routine.description ? (
                               <div style={routineCard.desc}>{routine.description}</div>
                             ) : null}
@@ -264,7 +389,8 @@ export default function Workouts() {
                                         <div style={memberLog.item}>
                                           <span style={memberLog.label}>Weight</span>
                                           <span style={memberLog.value}>
-                                            {x.member_log.weight ?? "-"} {x.member_log.weight != null ? "kg" : ""}
+                                            {x.member_log.weight ?? "-"}{" "}
+                                            {x.member_log.weight != null ? "kg" : ""}
                                           </span>
                                         </div>
 
@@ -476,6 +602,86 @@ const page = {
   },
 };
 
+const countdownList = {
+  wrap: {
+    display: "grid",
+    gap: 16,
+    marginBottom: 18,
+  },
+};
+
+const countdown = {
+  wrap: {
+    padding: 18,
+    borderRadius: 22,
+    border: `1px solid rgba(0,245,212,.20)`,
+    background: "linear-gradient(135deg, rgba(0,245,212,.10), rgba(124,58,237,.10))",
+    boxShadow: "0 12px 30px rgba(0,0,0,.18)",
+    display: "grid",
+    gap: 14,
+  },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+  },
+  eyebrow: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    fontWeight: 900,
+    color: theme.colors.primary,
+    marginBottom: 6,
+  },
+  title: {
+    margin: 0,
+    fontSize: 20,
+    fontWeight: 900,
+    color: theme.colors.text,
+  },
+  sub: {
+    marginTop: 8,
+    fontSize: 13,
+    color: theme.colors.textDim,
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, minmax(80px, 1fr))",
+    gap: 12,
+  },
+  box: {
+    padding: "16px 12px",
+    borderRadius: 18,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.05)",
+    display: "grid",
+    placeItems: "center",
+    gap: 8,
+  },
+  num: {
+    fontSize: 28,
+    fontWeight: 900,
+    color: theme.colors.text,
+    lineHeight: 1,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: 800,
+    color: theme.colors.textDim,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  expired: {
+    padding: "12px 14px",
+    borderRadius: 14,
+    background: "rgba(255,59,59,.10)",
+    border: `1px solid ${theme.colors.dangerBorder}`,
+    color: theme.colors.dangerText,
+    fontWeight: 800,
+  },
+};
+
 const tabs = {
   wrap: {
     display: "flex",
@@ -534,6 +740,24 @@ const routineCard = {
     fontSize: 16,
     fontWeight: 900,
     letterSpacing: 0.3,
+  },
+  dateMeta: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap",
+    marginTop: 8,
+  },
+  dateTag: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.04)",
+    color: theme.colors.textDim,
+    fontSize: 12,
+    fontWeight: 800,
+    letterSpacing: 0.4,
   },
   desc: {
     marginTop: 6,

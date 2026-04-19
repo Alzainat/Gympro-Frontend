@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { theme, ui as UI } from "../../theme/uiTheme";
 import { logout } from "../../services/authService";
@@ -6,24 +6,61 @@ import { logout } from "../../services/authService";
 export default function Home() {
   const navigate = useNavigate();
 
+  // ✅ NEW: member name state
+  const [memberName, setMemberName] = useState("");
+
   // Parallax refs
   const heroRef = useRef(null);
   const glowRef = useRef(null);
 
   useEffect(() => {
-    // Scroll reveal
-    const items = document.querySelectorAll("[data-reveal]");
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) e.target.classList.add("reveal-in");
-        });
-      },
-      { threshold: 0.15 }
-    );
-    items.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, []);
+  const fetchMemberName = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch("http://127.0.0.1:8000/api/member/me", {
+        headers: {
+          Accept: "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Request failed: ${res.status}`);
+      }
+
+      const data = await res.json();
+      console.log("member me:", data);
+
+      const fullName =
+        data?.profile?.full_name ||
+        data?.name ||
+        data?.first_name ||
+        data?.firstName ||
+        data?.user?.name ||
+        "";
+
+      setMemberName(fullName.split(" ")[0]);
+    } catch (error) {
+      console.error("Failed to fetch member name:", error);
+    }
+  };
+
+  fetchMemberName();
+
+  const items = document.querySelectorAll("[data-reveal]");
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) e.target.classList.add("reveal-in");
+      });
+    },
+    { threshold: 0.15 }
+  );
+
+  items.forEach((el) => io.observe(el));
+  return () => io.disconnect();
+}, []);
 
   const handleLogout = async () => {
     try {
@@ -121,8 +158,6 @@ export default function Home() {
       desc: "Message support or your trainer directly — fast and convenient.",
     },
   ];
-
-  
 
   const s = {
     page: {
@@ -527,7 +562,9 @@ export default function Home() {
             <div style={s.heroInner}>
               <div style={s.pill}>✨ Ultra Premium Experience</div>
 
-              <h2 style={s.heroTitle}>Welcome to your Member Portal</h2>
+              <h2 style={s.heroTitle}>
+                Welcome{memberName ? ` ${memberName}` : ""} 👋
+              </h2>
 
               <p style={s.heroText}>
                 Manage bookings, discover programs, connect with trainers, and get support —
@@ -585,8 +622,6 @@ export default function Home() {
             ))}
           </div>
         </section>
-
-        
 
         {/* CONTACT */}
         <section style={s.section}>
