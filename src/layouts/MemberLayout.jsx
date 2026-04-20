@@ -1,18 +1,23 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { theme } from "../theme/uiTheme";
+import { theme, ui } from "../theme/uiTheme";
 import HealthProfileModal from "../components/HealthProfileModal";
 
 export default function MemberLayout() {
   return (
     <div style={s.wrap}>
+      <div style={ui.bgGrid} aria-hidden="true" />
+      <div style={s.glowTop} aria-hidden="true" />
+      <div style={s.glowBottom} aria-hidden="true" />
+
       <Sidebar />
 
       <main style={s.main}>
-        <Outlet />
+        <div style={s.content}>
+          <Outlet />
+        </div>
       </main>
 
-      {/* يظهر أول ما العضو يفوت إذا ما عنده بيانات */}
       <HealthProfileModal />
     </div>
   );
@@ -20,14 +25,32 @@ export default function MemberLayout() {
 
 const s = {
   wrap: {
-    display: "flex",
     minHeight: "100vh",
-    background: theme.gradients.page,
+    display: "flex",
+    background: theme.gradients.pageSoft,
+    position: "relative",
+    overflow: "hidden",
   },
 
   main: {
     flex: 1,
-    padding: 24,
+    padding: theme.layout.pagePadding,
     color: theme.colors.text,
+    position: "relative",
+    zIndex: 1,
+  },
+
+  content: {
+    width: "100%",
+    maxWidth: theme.layout.contentMax,
+    margin: "0 auto",
+  },
+
+  glowTop: {
+    ...ui.glowTop,
+  },
+
+  glowBottom: {
+    ...ui.glowBottom,
   },
 };

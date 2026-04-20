@@ -237,19 +237,19 @@ const page = {
     alignItems: "flex-end",
     justifyContent: "space-between",
     flexWrap: "wrap",
-    marginBottom: 16,
+    marginBottom: 18,
   },
 
   title: {
     margin: 0,
-    fontSize: 26,
-    fontWeight: 950,
-    letterSpacing: 0.5,
-    color: theme.colors.text,
+    fontSize: 30,
+    fontWeight: 800,
+    letterSpacing: "-0.02em",
+    color: theme.colors.textStrong,
   },
 
   subtitle: {
-    marginTop: 6,
+    marginTop: 8,
     color: theme.colors.textDim,
     fontSize: 14,
   },
@@ -261,14 +261,14 @@ const page = {
 
   searchInput: {
     ...ui.input,
-    height: 44,
+    height: 46,
+    background: "rgba(255,255,255,.9)",
   },
 
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(3, 360px)",
-    gap: 14,
-    
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gap: 16,
   },
 
   card: {
@@ -291,9 +291,10 @@ const page = {
   },
 
   name: {
-    fontWeight: 950,
-    fontSize: 16,
-    letterSpacing: 0.3,
+    fontWeight: 800,
+    fontSize: 17,
+    color: theme.colors.textStrong,
+    letterSpacing: 0.2,
   },
 
   badge: {
@@ -302,8 +303,8 @@ const page = {
     gap: 8,
     padding: "6px 10px",
     borderRadius: 999,
-    border: `1px solid ${theme.colors.borderSoft}`,
-    background: "rgba(255,255,255,.04)",
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.72)",
     color: theme.colors.textDim,
     fontSize: 13,
     whiteSpace: "nowrap",
@@ -313,8 +314,8 @@ const page = {
     width: 8,
     height: 8,
     borderRadius: "50%",
-    background: theme.gradients.dot,
-    boxShadow: theme.shadow.glow,
+    background: theme.gradients.mixed,
+    boxShadow: theme.shadow.soft,
   },
 
   metaRow: {
@@ -326,9 +327,10 @@ const page = {
 
   metaItem: {
     border: `1px solid ${theme.colors.border}`,
-    background: theme.colors.surface,
+    background: "rgba(255,255,255,.72)",
     borderRadius: theme.radius.md,
     padding: 10,
+    boxShadow: theme.shadow.soft,
   },
 
   metaLabel: {
@@ -338,8 +340,8 @@ const page = {
   },
 
   metaValue: {
-    fontWeight: 900,
-    color: theme.colors.text,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
     fontSize: 14,
   },
 
@@ -360,13 +362,13 @@ const page = {
     marginTop: 12,
     width: "100%",
     padding: "12px 14px",
-    borderRadius: theme.radius.md,
-    border: `1px solid ${theme.colors.borderSoft}`,
+    borderRadius: theme.radius.pill,
+    border: "none",
     background: theme.gradients.primary,
-    color: "#061018",
-    fontWeight: 900,
+    color: "#4a2d00",
+    fontWeight: 800,
     cursor: "pointer",
-    boxShadow: theme.shadow.glow,
+    boxShadow: theme.shadow.button,
     transition: theme.motion.base,
   },
 
@@ -380,30 +382,30 @@ const page = {
   currentBtn: {
     width: "100%",
     padding: "12px 14px",
-    borderRadius: theme.radius.md,
-    border: `1px solid ${theme.colors.borderSoft}`,
-    background: "rgba(0,245,212,.12)",
-    color: "#00f5d4",
-    fontWeight: 900,
+    borderRadius: theme.radius.pill,
+    border: "1px solid rgba(111,207,151,.20)",
+    background: "rgba(111,207,151,.12)",
+    color: "#3d8b5d",
+    fontWeight: 700,
     cursor: "default",
   },
 
   unsubscribeBtn: {
     width: "100%",
     padding: "12px 14px",
-    borderRadius: theme.radius.md,
-    border: `1px solid rgba(255,255,255,.12)`,
-    background: "rgba(255,255,255,.05)",
+    borderRadius: theme.radius.pill,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.72)",
     color: theme.colors.text,
-    fontWeight: 900,
+    fontWeight: 700,
     cursor: "pointer",
+    boxShadow: theme.shadow.soft,
   },
 
   skeletonGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(3, 260px)",
+    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
     gap: 14,
-    justifyContent: "center",
   },
 
   skeletonCard: {
@@ -411,9 +413,10 @@ const page = {
     borderRadius: theme.radius.lg,
     border: `1px solid ${theme.colors.border}`,
     background:
-      "linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.08), rgba(255,255,255,.04))",
+      "linear-gradient(90deg, rgba(255,255,255,.55), rgba(245,240,248,.95), rgba(255,255,255,.55))",
     backgroundSize: "200% 100%",
     animation: "shimmer 1.2s ease-in-out infinite",
+    boxShadow: theme.shadow.soft,
   },
 
   empty: {
@@ -422,11 +425,13 @@ const page = {
     borderRadius: theme.radius.lg,
     padding: 18,
     color: theme.colors.text,
+    boxShadow: theme.shadow.soft,
   },
 
   emptyTitle: {
-    fontWeight: 950,
+    fontWeight: 800,
     marginBottom: 6,
+    color: theme.colors.textStrong,
   },
 
   emptySub: {

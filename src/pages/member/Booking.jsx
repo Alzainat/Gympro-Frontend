@@ -352,21 +352,22 @@ const p = {
     alignItems: "flex-end",
     justifyContent: "space-between",
     flexWrap: "wrap",
-    marginBottom: 16,
+    marginBottom: 20,
   },
 
   title: {
     margin: 0,
-    fontSize: 26,
-    fontWeight: 950,
-    letterSpacing: 0.5,
-    color: theme.colors.text,
+    fontSize: 30,
+    fontWeight: 800,
+    letterSpacing: "-0.02em",
+    color: theme.colors.textStrong,
   },
 
   subtitle: {
-    marginTop: 6,
+    marginTop: 8,
     color: theme.colors.textDim,
-    fontSize: 14,
+    fontSize: 15,
+    lineHeight: 1.5,
   },
 
   filterWrap: {
@@ -380,7 +381,7 @@ const p = {
     color: theme.colors.textFaint,
     fontSize: 12,
     fontWeight: 800,
-    letterSpacing: 0.6,
+    letterSpacing: 0.4,
   },
 
   select: {
@@ -389,21 +390,23 @@ const p = {
     WebkitAppearance: "none",
     MozAppearance: "none",
     cursor: "pointer",
-    height: 44,
+    height: 46,
+    background: "rgba(255,255,255,0.9)",
   },
 
   toast: {
-    marginTop: 10,
+    marginTop: 8,
     marginBottom: 6,
-    padding: "10px 14px",
+    padding: "12px 14px",
     borderRadius: theme.radius.md,
     border: `1px solid ${theme.colors.border}`,
     background: theme.colors.surface,
     color: theme.colors.textDim,
+    boxShadow: theme.shadow.soft,
   },
 
   section: {
-    marginTop: 18,
+    marginTop: 22,
   },
 
   sectionHeader: {
@@ -411,15 +414,14 @@ const p = {
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
-    marginBottom: 10,
+    marginBottom: 12,
   },
 
   h3: {
     margin: 0,
-    fontSize: 16,
-    fontWeight: 950,
-    letterSpacing: 0.3,
-    color: theme.colors.text,
+    fontSize: 18,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
   },
 
   miniNote: {
@@ -429,15 +431,15 @@ const p = {
 
   list: {
     display: "grid",
-    gap: 12,
+    gap: 14,
   },
 
   item: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    gap: 12,
-    padding: 14,
+    gap: 14,
+    padding: 16,
     borderRadius: theme.radius.lg,
     border: `1px solid ${theme.colors.border}`,
     background: theme.colors.card,
@@ -449,11 +451,11 @@ const p = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    gap: 12,
-    padding: 14,
+    gap: 14,
+    padding: 16,
     borderRadius: theme.radius.lg,
-    border: `1px solid rgba(34,197,94,.30)`,
-    background: "rgba(17,24,39,.60)",
+    border: "1px solid rgba(111,207,151,.28)",
+    background: "rgba(255,255,255,0.76)",
     backdropFilter: "blur(16px)",
     boxShadow: theme.shadow.card,
   },
@@ -467,9 +469,9 @@ const p = {
   },
 
   itemTitle: {
-    fontWeight: 950,
-    fontSize: 15,
-    color: theme.colors.text,
+    fontWeight: 800,
+    fontSize: 16,
+    color: theme.colors.textStrong,
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
@@ -487,7 +489,7 @@ const p = {
   },
 
   bold: {
-    color: theme.colors.text,
+    color: theme.colors.textStrong,
   },
 
   actions: {
@@ -498,55 +500,54 @@ const p = {
   },
 
   chatBtn: {
-    padding: "10px 12px",
-    borderRadius: theme.radius.md,
-    border: `1px solid ${theme.colors.borderSoft}`,
-    fontWeight: 900,
-    background: "rgba(0,245,212,.10)",
-    color: theme.colors.primary,
+    padding: "10px 14px",
+    borderRadius: theme.radius.pill,
+    border: `1px solid ${theme.colors.border}`,
+    fontWeight: 700,
+    background: "rgba(255,255,255,0.72)",
+    color: theme.colors.accent,
     cursor: "pointer",
     transition: theme.motion.base,
-    boxShadow: "0 10px 26px rgba(0,245,212,.10)",
+    boxShadow: theme.shadow.soft,
   },
 
   bookBtn: (disabled) => ({
-    padding: "10px 12px",
-    borderRadius: theme.radius.md,
+    padding: "10px 16px",
+    borderRadius: theme.radius.pill,
     border: "none",
-    fontWeight: 950,
+    fontWeight: 800,
     background: theme.gradients.primary,
-    color: "#061018",
+    color: "#4a2d00",
     cursor: disabled ? "not-allowed" : "pointer",
     opacity: disabled ? 0.6 : 1,
     transition: theme.motion.base,
-    boxShadow: disabled ? "none" : theme.shadow.glow,
+    boxShadow: disabled ? "none" : theme.shadow.button,
   }),
 
   badgeBooked: {
     padding: "6px 10px",
     borderRadius: 999,
-    fontWeight: 950,
+    fontWeight: 800,
     fontSize: 11,
-    letterSpacing: 0.6,
-    border: "1px solid rgba(34,197,94,.35)",
-    background: "rgba(34,197,94,.15)",
-    color: "#86efac",
+    letterSpacing: 0.4,
+    border: "1px solid rgba(111,207,151,.30)",
+    background: "rgba(111,207,151,.14)",
+    color: "#3d8b5d",
     whiteSpace: "nowrap",
   },
 
   badgeAvailable: {
     padding: "6px 10px",
     borderRadius: 999,
-    fontWeight: 950,
+    fontWeight: 800,
     fontSize: 11,
-    letterSpacing: 0.6,
-    border: `1px solid ${theme.colors.borderSoft}`,
-    background: "rgba(255,255,255,.04)",
+    letterSpacing: 0.4,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,0.7)",
     color: theme.colors.textDim,
     whiteSpace: "nowrap",
   },
 
-  // Skeletons
   skeletonGrid: {
     display: "grid",
     gap: 12,
@@ -557,22 +558,25 @@ const p = {
     borderRadius: theme.radius.lg,
     border: `1px solid ${theme.colors.border}`,
     background:
-      "linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.08), rgba(255,255,255,.04))",
+      "linear-gradient(90deg, rgba(255,255,255,.55), rgba(245,240,248,.95), rgba(255,255,255,.55))",
     backgroundSize: "200% 100%",
     animation: "shimmer 1.2s ease-in-out infinite",
+    boxShadow: theme.shadow.soft,
   },
 
   empty: {
     border: `1px solid ${theme.colors.border}`,
     background: theme.colors.card,
     borderRadius: theme.radius.lg,
-    padding: 16,
+    padding: 18,
     color: theme.colors.text,
+    boxShadow: theme.shadow.soft,
   },
 
   emptyTitle: {
-    fontWeight: 950,
+    fontWeight: 800,
     marginBottom: 6,
+    color: theme.colors.textStrong,
   },
 
   emptySub: {

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { forgotPassword } from "../services/authService";
 import AuthCard, { AuthUI } from "../components/AuthCard";
+import { theme } from "../theme/uiTheme";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -86,8 +87,9 @@ const s = {
 
   labelText: {
     fontSize: 12,
-    color: "rgba(255,255,255,.65)",
+    color: theme.colors.textDim,
     letterSpacing: 0.4,
+    fontWeight: 600,
   },
 
   submitBtn: {
@@ -105,7 +107,7 @@ const s = {
   },
 
   link: {
-    color: "#00f5d4",
+    color: theme.colors.accent,
     textDecoration: "none",
     fontWeight: 800,
     fontSize: 14,

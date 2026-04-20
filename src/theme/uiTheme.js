@@ -1,72 +1,91 @@
 export const theme = {
   colors: {
-    bg0: "#05070d",
-    bg1: "#0b1220",
+    bg0: "#f6f2f8",
+    bg1: "#efe8f4",
+    bg2: "#e8deee",
 
-    card: "rgba(17,24,39,.65)",
-    surface: "rgba(15,23,42,.70)",
+    card: "rgba(255,255,255,0.72)",
+    surface: "rgba(255,255,255,0.88)",
+    surfaceSoft: "rgba(248,244,250,0.92)",
 
-    border: "rgba(255,255,255,.08)",
-    borderSoft: "rgba(255,255,255,.10)",
+    border: "rgba(99,78,133,0.10)",
+    borderSoft: "rgba(99,78,133,0.06)",
 
-    text: "#ffffff",
-    textDim: "rgba(255,255,255,.65)",
-    textFaint: "rgba(255,255,255,.35)",
+    text: "#2f2347",
+    textStrong: "#24173a",
+    textDim: "rgba(47,35,71,0.68)",
+    textFaint: "rgba(47,35,71,0.42)",
 
-    primary: "#00f5d4",
-    primary2: "#00d4b3",
-    accent: "#7c3aed",
+    primary: "#f2b24f",
+    primary2: "#e89a3d",
+    accent: "#7a5ccf",
+    accent2: "#9b87e8",
 
-    dangerBg: "rgba(255,59,59,.15)",
-    dangerBorder: "rgba(255,59,59,.30)",
-    dangerText: "#ffb4b4",
+    success: "#6fcf97",
+    info: "#7b8cff",
+
+    dangerBg: "rgba(235,87,87,0.10)",
+    dangerBorder: "rgba(235,87,87,0.18)",
+    dangerText: "#c94b4b",
   },
 
   radius: {
-    sm: 10,
-    md: 14,
-    lg: 20,
+    xs: 10,
+    sm: 14,
+    md: 18,
+    lg: 24,
+    xl: 30,
+    pill: 999,
   },
 
   shadow: {
-    card: "0 30px 80px rgba(0,0,0,.6)",
-    glow: "0 15px 35px rgba(0,245,212,.25)",
+    card: "0 20px 50px rgba(98, 78, 133, 0.10)",
+    soft: "0 10px 30px rgba(98, 78, 133, 0.08)",
+    button: "0 10px 22px rgba(242,178,79,0.28)",
+    glow: "0 8px 20px rgba(122,92,207,0.16)",
   },
 
- gradients: {
-  page:
-    "radial-gradient(1100px 700px at 20% 20%, rgba(0,245,212,.14), transparent 55%), " +
-    "radial-gradient(900px 600px at 80% 25%, rgba(124,58,237,.12), transparent 55%), " +
-    "linear-gradient(135deg, #05070d, #0b1220)",
+  gradients: {
+    page:
+      "linear-gradient(135deg, #f7f3f8 0%, #f1ebf4 45%, #ece4f1 100%)",
 
-  primary: "linear-gradient(90deg, #00f5d4, #00d4b3)",
+    pageSoft:
+      "radial-gradient(900px 500px at 15% 10%, rgba(255,255,255,0.75), transparent 60%), " +
+      "radial-gradient(700px 420px at 85% 20%, rgba(155,135,232,0.10), transparent 60%), " +
+      "radial-gradient(700px 420px at 20% 80%, rgba(242,178,79,0.08), transparent 60%), " +
+      "linear-gradient(135deg, #f7f3f8 0%, #f1ebf4 45%, #ece4f1 100%)",
 
-  dot: "linear-gradient(90deg, #00f5d4, #7c3aed)",
+    primary: "linear-gradient(90deg, #f2b24f 0%, #e89a3d 100%)",
+    accent: "linear-gradient(90deg, #7a5ccf 0%, #9b87e8 100%)",
+    mixed: "linear-gradient(90deg, #f2b24f 0%, #9b87e8 100%)",
 
-  glow: "radial-gradient(circle, rgba(0,245,212,.25), transparent 60%)",
+    progress: "linear-gradient(90deg, #f2a65a 0%, #e98b73 45%, #8d6be8 100%)",
 
-  glowAccent: "radial-gradient(circle, rgba(124,58,237,.20), transparent 62%)",
-},
+    glowWarm: "radial-gradient(circle, rgba(242,178,79,0.20), transparent 65%)",
+    glowPurple: "radial-gradient(circle, rgba(122,92,207,0.16), transparent 65%)",
+  },
 
   motion: {
     fast: "all .15s ease",
-    base: "all .2s ease",
+    base: "all .22s ease",
+    smooth: "all .32s ease",
   },
 
   layout: {
-    pagePadding: 20,
-    cardMaxWidth: 420,
-    contentMax: 1100,
+    pagePadding: 24,
+    cardMaxWidth: 440,
+    contentMax: 1240,
+    navHeight: 72,
   },
 };
 
-// Helpers لتقليل التكرار
 export const ui = {
   page: {
     minHeight: "100vh",
-    background: theme.gradients.page,
+    background: theme.gradients.pageSoft,
     position: "relative",
     overflow: "hidden",
+    color: theme.colors.text,
   },
 
   center: {
@@ -79,10 +98,11 @@ export const ui = {
   card: {
     width: "100%",
     maxWidth: theme.layout.cardMaxWidth,
-    padding: 32,
+    padding: 28,
     borderRadius: theme.radius.lg,
     background: theme.colors.card,
-    backdropFilter: "blur(20px)",
+    backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
     border: `1px solid ${theme.colors.border}`,
     boxShadow: theme.shadow.card,
     color: theme.colors.text,
@@ -90,22 +110,33 @@ export const ui = {
     boxSizing: "border-box",
   },
 
+  panel: {
+    background: theme.colors.surface,
+    border: `1px solid ${theme.colors.borderSoft}`,
+    borderRadius: theme.radius.md,
+    boxShadow: theme.shadow.soft,
+    backdropFilter: "blur(14px)",
+    WebkitBackdropFilter: "blur(14px)",
+  },
+
   header: {
-    marginBottom: 20,
-    textAlign: "center",
+    marginBottom: 18,
+    textAlign: "left",
   },
 
   title: {
     margin: 0,
-    fontSize: 26,
-    fontWeight: 900,
-    letterSpacing: 1,
+    fontSize: 28,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
+    letterSpacing: "-0.02em",
   },
 
   subtitle: {
     marginTop: 8,
     color: theme.colors.textDim,
-    fontSize: 14,
+    fontSize: 15,
+    lineHeight: 1.5,
   },
 
   input: {
@@ -115,85 +146,94 @@ export const ui = {
     border: `1px solid ${theme.colors.border}`,
     outline: "none",
     fontSize: 14,
-    background: theme.colors.surface,
+    background: "rgba(255,255,255,0.82)",
     color: theme.colors.text,
     transition: theme.motion.base,
     boxSizing: "border-box",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.55)",
   },
 
   button: (disabled) => ({
     width: "100%",
-    padding: "14px 16px",
-    borderRadius: theme.radius.md,
+    padding: "14px 18px",
+    borderRadius: theme.radius.pill,
     border: "none",
-    fontWeight: 800,
-    letterSpacing: 1,
+    fontWeight: 700,
     cursor: disabled ? "not-allowed" : "pointer",
     opacity: disabled ? 0.6 : 1,
     background: theme.gradients.primary,
-    color: "#061018",
-    marginTop: 6,
-    boxShadow: disabled ? "none" : theme.shadow.glow,
+    color: "#4a2d00",
+    boxShadow: disabled ? "none" : theme.shadow.button,
     transition: theme.motion.base,
     boxSizing: "border-box",
   }),
 
+  ghostButton: {
+    padding: "12px 16px",
+    borderRadius: theme.radius.pill,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,0.65)",
+    color: theme.colors.text,
+    fontWeight: 600,
+    boxShadow: theme.shadow.soft,
+  },
+
   link: {
-    color: theme.colors.primary,
+    color: theme.colors.accent,
     textDecoration: "none",
-    fontWeight: 800,
+    fontWeight: 700,
   },
 
   linkRow: {
     marginTop: 18,
     textAlign: "center",
     fontSize: 14,
-    color: "rgba(255,255,255,.6)",
+    color: theme.colors.textDim,
   },
 
   error: {
     background: theme.colors.dangerBg,
     color: theme.colors.dangerText,
     padding: "10px 14px",
-    borderRadius: 12,
+    borderRadius: 14,
     marginBottom: 14,
     fontSize: 14,
     border: `1px solid ${theme.colors.dangerBorder}`,
     boxSizing: "border-box",
   },
 
-  // Decorative backgrounds (نفس الجو تبع auth pages)
   bgGrid: {
-    position: "absolute",
-    inset: "-40%",
-    background:
-      "repeating-linear-gradient(135deg, rgba(255,255,255,.04) 0px, rgba(255,255,255,.04) 2px, transparent 2px, transparent 14px)",
-    transform: "rotate(-8deg)",
-    opacity: 0.6,
-    pointerEvents: "none",
-  },
+  position: "absolute",
+  inset: 0,
+  background: `
+    radial-gradient(800px 400px at 10% 10%, rgba(255,255,255,0.6), transparent 60%),
+    radial-gradient(700px 400px at 90% 20%, rgba(155,135,232,0.18), transparent 60%),
+    linear-gradient(135deg, #f3eee9 0%, #ebe5f1 50%, #e6def0 100%)
+  `,
+  pointerEvents: "none",
+},
 
   glowTop: {
     position: "absolute",
-    width: 520,
-    height: 520,
+    width: 460,
+    height: 460,
     borderRadius: "50%",
-    background: theme.gradients.glow,
-    filter: "blur(90px)",
-    top: -180,
-    right: -170,
+    background: theme.gradients.glowPurple,
+    filter: "blur(80px)",
+    top: -140,
+    right: -120,
     pointerEvents: "none",
   },
 
   glowBottom: {
     position: "absolute",
-    width: 520,
-    height: 520,
+    width: 460,
+    height: 460,
     borderRadius: "50%",
-    background: theme.gradients.glowAccent,
-    filter: "blur(95px)",
-    bottom: -220,
-    left: -200,
+    background: theme.gradients.glowWarm,
+    filter: "blur(90px)",
+    bottom: -180,
+    left: -120,
     pointerEvents: "none",
   },
 };

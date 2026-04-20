@@ -155,53 +155,53 @@ export default function ProgressPhotos() {
       <div style={ui.glowBottom} />
 
       <style>{`
-        .dark-select {
-          appearance: none;
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-          background-repeat: no-repeat;
-          background-position: right 14px center;
-          background-size: 18px;
-          padding-right: 44px;
-        }
+  .dark-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%237a5ccf' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 18px;
+    padding-right: 44px;
+  }
 
-        .dark-select option {
-          background: #16213a;
-          color: #ffffff;
-        }
+  .dark-select option {
+    background: #ffffff;
+    color: #2f2347;
+  }
 
-        .dark-input::file-selector-button {
-          display: none;
-        }
+  .dark-input::file-selector-button {
+    display: none;
+  }
 
-        .dark-input::-webkit-file-upload-button {
-          display: none;
-        }
+  .dark-input::-webkit-file-upload-button {
+    display: none;
+  }
 
-        @media (max-width: 980px) {
-          .progress-grid {
-            grid-template-columns: 1fr !important;
-          }
+  @media (max-width: 980px) {
+    .progress-grid {
+      grid-template-columns: 1fr !important;
+    }
 
-          .compare-grid {
-            grid-template-columns: 1fr !important;
-          }
+    .compare-grid {
+      grid-template-columns: 1fr !important;
+    }
 
-          .form-row {
-            grid-template-columns: 1fr !important;
-          }
+    .form-row {
+      grid-template-columns: 1fr !important;
+    }
 
-          .compare-controls {
-            grid-template-columns: 1fr !important;
-          }
+    .compare-controls {
+      grid-template-columns: 1fr !important;
+    }
 
-          .gallery-header {
-            flex-direction: column;
-            align-items: stretch !important;
-          }
-        }
-      `}</style>
+    .gallery-header {
+      flex-direction: column;
+      align-items: stretch !important;
+    }
+  }
+`}</style>
 
       <div style={page.container}>
         <div style={page.card}>
@@ -497,7 +497,7 @@ const page = {
   },
   card: {
     width: "100%",
-    padding: 22,
+    padding: 24,
     borderRadius: theme.radius.lg,
     background: theme.colors.card,
     backdropFilter: "blur(20px)",
@@ -515,8 +515,9 @@ const page = {
   },
   title: {
     margin: 0,
-    fontSize: 24,
-    fontWeight: 900,
+    fontSize: 28,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
   },
   sub: {
     margin: "8px 0 0",
@@ -530,14 +531,14 @@ const page = {
     fontWeight: 700,
   },
   alertError: {
-    background: "rgba(255, 80, 80, 0.12)",
-    border: "1px solid rgba(255, 80, 80, 0.30)",
-    color: "#ffb3b3",
+    background: theme.colors.dangerBg,
+    border: `1px solid ${theme.colors.dangerBorder}`,
+    color: theme.colors.dangerText,
   },
   alertSuccess: {
-    background: "rgba(0,245,212,.12)",
-    border: "1px solid rgba(0,245,212,.30)",
-    color: theme.colors.primary,
+    background: "rgba(111,207,151,.12)",
+    border: "1px solid rgba(111,207,151,.22)",
+    color: "#3d8b5d",
   },
 };
 
@@ -553,14 +554,16 @@ const box = {
   wrap: {
     padding: 16,
     borderRadius: theme.radius.lg,
-    background: theme.colors.surface,
+    background: "rgba(255,255,255,.52)",
     border: `1px solid ${theme.colors.border}`,
+    boxShadow: theme.shadow.soft,
   },
   title: {
     margin: 0,
     fontSize: 18,
-    fontWeight: 900,
+    fontWeight: 800,
     marginBottom: 14,
+    color: theme.colors.textStrong,
   },
 };
 
@@ -579,55 +582,54 @@ const formStyles = {
     marginBottom: 6,
     fontSize: 12,
     color: theme.colors.textDim,
-    fontWeight: 800,
+    fontWeight: 700,
   },
   input: {
     width: "100%",
     padding: "14px 16px",
-    borderRadius: 22,
-    border: `1px solid rgba(255,255,255,.09)`,
-    background: "linear-gradient(180deg, rgba(23,32,57,.96), rgba(16,24,46,.96))",
-    color: "#ffffff",
+    borderRadius: 18,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.9)",
+    color: theme.colors.text,
     outline: "none",
     boxSizing: "border-box",
     fontSize: 15,
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,.03)",
   },
   textarea: {
     width: "100%",
     minHeight: 110,
     padding: "14px 16px",
     borderRadius: 18,
-    border: `1px solid rgba(255,255,255,.09)`,
-    background: "linear-gradient(180deg, rgba(23,32,57,.96), rgba(16,24,46,.96))",
-    color: "#ffffff",
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.9)",
+    color: theme.colors.text,
     resize: "vertical",
     outline: "none",
     boxSizing: "border-box",
     fontSize: 15,
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,.03)",
   },
   button: {
     padding: "13px 16px",
     border: "none",
-    borderRadius: 16,
+    borderRadius: theme.radius.pill,
     background: theme.gradients.primary,
-    color: "#061018",
-    fontWeight: 900,
+    color: "#4a2d00",
+    fontWeight: 800,
     cursor: "pointer",
-    boxShadow: theme.shadow.glow,
+    boxShadow: theme.shadow.button,
     fontSize: 14,
   },
   buttonAlt: {
     padding: "13px 16px",
-    borderRadius: 16,
-    border: `1px solid rgba(255,255,255,.10)`,
-    background: "linear-gradient(180deg, rgba(30,39,66,.96), rgba(17,24,45,.96))",
-    color: "#ffffff",
-    fontWeight: 900,
+    borderRadius: theme.radius.pill,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.72)",
+    color: theme.colors.text,
+    fontWeight: 700,
     cursor: "pointer",
     width: "100%",
     fontSize: 14,
+    boxShadow: theme.shadow.soft,
   },
 };
 
@@ -647,8 +649,8 @@ const fileUpload = {
     width: "100%",
     padding: "12px 14px",
     borderRadius: 18,
-    border: "1px solid rgba(255,255,255,.09)",
-    background: "linear-gradient(180deg, rgba(23,32,57,.96), rgba(16,24,46,.96))",
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.82)",
     boxSizing: "border-box",
     minHeight: 62,
   },
@@ -656,15 +658,15 @@ const fileUpload = {
     flexShrink: 0,
     padding: "10px 14px",
     borderRadius: 12,
-    background: "rgba(0,245,212,.12)",
-    border: "1px solid rgba(0,245,212,.28)",
-    color: theme.colors.primary,
-    fontWeight: 900,
+    background: "rgba(122,92,207,.10)",
+    border: "1px solid rgba(122,92,207,.18)",
+    color: theme.colors.accent,
+    fontWeight: 700,
     fontSize: 13,
     whiteSpace: "nowrap",
   },
   fileName: {
-    color: "#ffffff",
+    color: theme.colors.text,
     fontSize: 14,
     opacity: 0.92,
     overflow: "hidden",
@@ -696,13 +698,15 @@ const compareGrid = {
   card: {
     borderRadius: theme.radius.md,
     border: `1px solid ${theme.colors.border}`,
-    background: "rgba(255,255,255,.03)",
+    background: "rgba(255,255,255,.72)",
     padding: 12,
+    boxShadow: theme.shadow.soft,
   },
   label: {
-    fontWeight: 900,
+    fontWeight: 800,
     marginBottom: 10,
     fontSize: 16,
+    color: theme.colors.textStrong,
   },
   image: {
     width: "100%",
@@ -743,9 +747,9 @@ const galleryGroups = {
   },
   heading: {
     fontSize: 14,
-    fontWeight: 900,
-    color: theme.colors.primary,
-    letterSpacing: 1,
+    fontWeight: 800,
+    color: theme.colors.accent,
+    letterSpacing: 0.6,
   },
 };
 
@@ -759,8 +763,8 @@ const gallery = {
     borderRadius: 18,
     overflow: "hidden",
     border: `1px solid ${theme.colors.border}`,
-    background: "rgba(255,255,255,.03)",
-    boxShadow: "0 8px 24px rgba(0,0,0,.18)",
+    background: "rgba(255,255,255,.76)",
+    boxShadow: theme.shadow.soft,
   },
   image: {
     width: "100%",
@@ -781,11 +785,11 @@ const gallery = {
   tag: {
     padding: "6px 10px",
     borderRadius: 999,
-    background: "rgba(0,245,212,.10)",
-    border: "1px solid rgba(0,245,212,.25)",
-    color: theme.colors.primary,
+    background: "rgba(242,178,79,.14)",
+    border: "1px solid rgba(242,178,79,.20)",
+    color: "#9a6107",
     fontSize: 12,
-    fontWeight: 800,
+    fontWeight: 700,
     textTransform: "capitalize",
   },
   meta: {
@@ -799,12 +803,12 @@ const gallery = {
   },
   deleteBtn: {
     padding: "10px 12px",
-    borderRadius: theme.radius.md,
-    border: "1px solid rgba(255,80,80,.25)",
-    background: "rgba(255,80,80,.08)",
-    color: "#ffb3b3",
+    borderRadius: theme.radius.pill,
+    border: `1px solid ${theme.colors.dangerBorder}`,
+    background: theme.colors.dangerBg,
+    color: theme.colors.dangerText,
     cursor: "pointer",
-    fontWeight: 800,
+    fontWeight: 700,
   },
 };
 
@@ -814,6 +818,6 @@ const empty = {
     borderRadius: theme.radius.md,
     border: `1px dashed ${theme.colors.border}`,
     color: theme.colors.textDim,
-    background: "rgba(255,255,255,.02)",
+    background: "rgba(255,255,255,.35)",
   },
 };

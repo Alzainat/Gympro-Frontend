@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { register } from "../services/authService";
 import AuthCard, { AuthUI } from "../components/AuthCard";
+import { theme } from "../theme/uiTheme";
 
 function EyeIcon({ off = false, size = 18 }) {
   if (off) {
@@ -29,6 +30,7 @@ function EyeIcon({ off = false, size = 18 }) {
       </svg>
     );
   }
+
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path
@@ -84,7 +86,12 @@ export default function Register() {
   const eyeActive2 = showConfirm || eyeHover2;
 
   return (
-    <AuthCard title="Create Account 🏋️‍♂️" subtitle="Join the grind. Build your strength.">
+    <AuthCard
+  title="Create Account 🏋️‍♂️"
+  subtitle="Join the grind. Build your strength."
+  visualTitle="Start Your Fitness Journey"
+  visualText="Create your account and unlock training, nutrition, progress tracking, and total discipline."
+>
       {error && <p style={AuthUI.error}>{error}</p>}
 
       <form onSubmit={submit} style={s.form}>
@@ -131,10 +138,14 @@ export default function Register() {
               onMouseLeave={() => setEyeHover1(false)}
               style={{
                 ...s.eyeBtn,
-                color: eyeActive1 ? "#00f5d4" : "rgba(255,255,255,.55)",
-                boxShadow: eyeActive1 ? "0 0 0 4px rgba(0,245,212,.12)" : "none",
-                borderColor: eyeActive1 ? "rgba(0,245,212,.35)" : "rgba(255,255,255,.10)",
-                transform: eyeHover1 ? "translateY(-50%) scale(1.02)" : "translateY(-50%)",
+                color: eyeActive1 ? theme.colors.accent : theme.colors.textFaint,
+                boxShadow: eyeActive1 ? theme.shadow.glow : "none",
+                borderColor: eyeActive1
+                  ? "rgba(122,92,207,0.22)"
+                  : theme.colors.border,
+                transform: eyeHover1
+                  ? "translateY(-50%) scale(1.02)"
+                  : "translateY(-50%)",
               }}
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
@@ -165,10 +176,14 @@ export default function Register() {
               onMouseLeave={() => setEyeHover2(false)}
               style={{
                 ...s.eyeBtn,
-                color: eyeActive2 ? "#00f5d4" : "rgba(255,255,255,.55)",
-                boxShadow: eyeActive2 ? "0 0 0 4px rgba(0,245,212,.12)" : "none",
-                borderColor: eyeActive2 ? "rgba(0,245,212,.35)" : "rgba(255,255,255,.10)",
-                transform: eyeHover2 ? "translateY(-50%) scale(1.02)" : "translateY(-50%)",
+                color: eyeActive2 ? theme.colors.accent : theme.colors.textFaint,
+                boxShadow: eyeActive2 ? theme.shadow.glow : "none",
+                borderColor: eyeActive2
+                  ? "rgba(122,92,207,0.22)"
+                  : theme.colors.border,
+                transform: eyeHover2
+                  ? "translateY(-50%) scale(1.02)"
+                  : "translateY(-50%)",
               }}
               aria-label={showConfirm ? "Hide confirm password" : "Show confirm password"}
             >
@@ -177,7 +192,10 @@ export default function Register() {
           </div>
         </label>
 
-        <button style={{ ...AuthUI.button(loading), ...s.submitBtn }} disabled={loading}>
+        <button
+          style={{ ...AuthUI.button(loading), ...s.submitBtn }}
+          disabled={loading}
+        >
           {loading ? "Creating..." : "Register"}
         </button>
       </form>
@@ -199,16 +217,19 @@ const s = {
     flexDirection: "column",
     alignItems: "center",
   },
+
   label: {
     width: "100%",
     display: "grid",
     gap: 8,
     marginBottom: 6,
   },
+
   labelText: {
     fontSize: 12,
-    color: "rgba(255,255,255,.65)",
+    color: theme.colors.textDim,
     letterSpacing: 0.4,
+    fontWeight: 600,
   },
 
   passwordWrap: {
@@ -222,15 +243,15 @@ const s = {
     position: "absolute",
     right: 12,
     top: "50%",
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
     display: "grid",
     placeItems: "center",
-    borderRadius: 10,
-    background: "rgba(15,23,42,.9)",
-    border: "1px solid rgba(255,255,255,.10)",
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.72)",
+    border: `1px solid ${theme.colors.border}`,
     cursor: "pointer",
-    transition: "all .15s ease",
+    transition: theme.motion.fast,
     transform: "translateY(-50%)",
   },
 
@@ -242,7 +263,7 @@ const s = {
   },
 
   link: {
-    color: "#00f5d4",
+    color: theme.colors.accent,
     textDecoration: "none",
     fontWeight: 800,
   },

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "../api/axios";
+import { theme, ui } from "../theme/uiTheme";
 
 export default function HealthProfileModal() {
   const [open, setOpen] = useState(false);
@@ -31,7 +32,6 @@ export default function HealthProfileModal() {
           setOpen(true);
         }
       } catch (e) {
-        // لو صار خطأ (مثلاً توكن)، ما نفتح المودال.
       } finally {
         if (mounted) setLoading(false);
       }
@@ -60,22 +60,24 @@ export default function HealthProfileModal() {
         (e?.response?.data?.errors
           ? Object.values(e.response.data.errors).flat().join(" ")
           : "Failed to save");
+
       setError(msg);
     }
   };
 
-  if (loading) return null;
-  if (!open) return null;
+  if (loading || !open) return null;
 
   return (
     <div style={styles.backdrop}>
       <div style={styles.modal}>
-        <h3 style={{ marginTop: 0 }}>Complete your body info</h3>
-        <p style={{ marginTop: 0, opacity: 0.8 }}>
-          Please enter your height, weight, and (optional) body fat %.
-        </p>
+        <div style={styles.header}>
+          <h3 style={styles.title}>Complete your body info</h3>
+          <p style={styles.subtitle}>
+            Please enter your height, weight, and optional body fat percentage.
+          </p>
+        </div>
 
-        <form onSubmit={submit} style={{ display: "grid", gap: 12 }}>
+        <form onSubmit={submit} style={styles.form}>
           <div style={styles.field}>
             <label style={styles.label}>Height (cm)</label>
             <input
@@ -132,46 +134,69 @@ const styles = {
   backdrop: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,0.55)",
+    background: "rgba(47,35,71,0.28)",
+    backdropFilter: "blur(4px)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     zIndex: 9999,
     padding: 16,
   },
+
   modal: {
-    width: "100%",
-    maxWidth: 420,
-    background: "#111827",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 12,
-    padding: 16,
-    boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
-    color: "white",
+    ...ui.card,
+    maxWidth: 460,
+    padding: 24,
   },
-  field: { display: "grid", gap: 6 },
-  label: { fontSize: 13, opacity: 0.85 },
-  input: {
-    height: 40,
-    borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.12)",
-    background: "rgba(255,255,255,0.05)",
-    color: "white",
-    padding: "0 12px",
-    outline: "none",
+
+  header: {
+    marginBottom: 18,
   },
-  button: {
-    height: 42,
-    borderRadius: 10,
-    border: "none",
-    cursor: "pointer",
+
+  title: {
+    margin: 0,
+    fontSize: 24,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
+  },
+
+  subtitle: {
+    marginTop: 8,
+    marginBottom: 0,
+    color: theme.colors.textDim,
+    fontSize: 14,
+    lineHeight: 1.6,
+  },
+
+  form: {
+    display: "grid",
+    gap: 12,
+  },
+
+  field: {
+    display: "grid",
+    gap: 6,
+  },
+
+  label: {
+    fontSize: 13,
+    color: theme.colors.textDim,
     fontWeight: 600,
   },
+
+  input: {
+    ...ui.input,
+    height: 44,
+    padding: "0 14px",
+  },
+
+  button: {
+    ...ui.button(false),
+    marginTop: 6,
+  },
+
   error: {
-    background: "rgba(255,0,0,0.12)",
-    border: "1px solid rgba(255,0,0,0.25)",
-    padding: 10,
-    borderRadius: 10,
-    fontSize: 13,
+    ...ui.error,
+    marginBottom: 0,
   },
 };

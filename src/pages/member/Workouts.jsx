@@ -23,9 +23,7 @@ function PlanTimer({ plan }) {
     const now = new Date();
     const diff = end.getTime() - now.getTime();
 
-    if (Number.isNaN(diff)) {
-      return null;
-    }
+    if (Number.isNaN(diff)) return null;
 
     if (diff <= 0) {
       return {
@@ -99,6 +97,109 @@ function PlanTimer({ plan }) {
   );
 }
 
+const roundLabel = (n) => {
+  if (n === 1) return "First Round";
+  if (n === 2) return "Second Round";
+  if (n === 3) return "Third Round";
+  return `Round ${n}`;
+};
+
+function WorkoutLogTable({ exercise, onEdit }) {
+  const rows = Array.isArray(exercise?.member_log?.sets) ? exercise.member_log.sets : [];
+
+  const displayRows =
+    rows.length > 0
+      ? rows
+      : Array.from({ length: Number(exercise?.sets || 3) || 3 }).map((_, i) => ({
+          round: i + 1,
+          weight: "",
+          reps: "",
+          done: false,
+        }));
+
+  const nextSetNumber = displayRows.length + 1;
+
+  return (
+    <div style={logTable.wrap}>
+      <div style={logTable.topBar}>
+        <div style={logTable.logPill}>Log</div>
+        <button type="button" style={logTable.editBtn} onClick={onEdit}>
+          {rows.length ? "Edit" : "Add"}
+        </button>
+      </div>
+
+      <div style={logTable.exerciseTitle}>{exercise?.exercise_name || "Exercise"}</div>
+      <div style={logTable.exerciseSub}>
+        {exercise?.target_muscle || "Target muscle"}{" "}
+        {exercise?.equipment ? `- ${exercise.equipment}` : ""}
+      </div>
+
+      <div style={logTable.tableShell}>
+        <div style={logTable.headerRow}>
+          <div style={{ ...logTable.headerCell, ...logTable.setCol }}>Set</div>
+          <div style={{ ...logTable.headerCell, ...logTable.weightCol }}>Weight</div>
+          <div style={{ ...logTable.headerCell, ...logTable.repsCol }}>Reps</div>
+          <div style={{ ...logTable.headerCell, ...logTable.checkCol }} />
+        </div>
+
+        {displayRows.map((row, index) => (
+          <div key={`${row.round}-${index}`} style={logTable.row}>
+            <div style={{ ...logTable.cell, ...logTable.setCol }}>
+              <span style={logTable.setIndex}>{row.round}</span>
+              <span style={logTable.setLabel}>{roundLabel(row.round)}</span>
+            </div>
+
+            <div style={{ ...logTable.cell, ...logTable.weightCol }}>
+              <div style={logTable.metricPill}>
+                {row.weight !== "" && row.weight != null ? `${row.weight} kg` : "-- kg"}
+              </div>
+            </div>
+
+            <div style={{ ...logTable.cell, ...logTable.repsCol }}>
+              <div style={logTable.metricPill}>
+                {row.reps !== "" && row.reps != null ? row.reps : "--"}
+              </div>
+            </div>
+
+            <div style={{ ...logTable.cell, ...logTable.checkCol }}>
+              <div style={row.done ? logTable.checkDone : logTable.checkIdle}>
+                {row.done ? "✓" : ""}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        <div style={logTable.addRow}>
+          <div style={{ ...logTable.cell, ...logTable.setCol }}>
+            <span style={logTable.nextSetIcon}>＋</span>
+            <span style={logTable.nextSetLabel}>Next Set ({nextSetNumber})</span>
+          </div>
+
+          <div style={{ ...logTable.cell, ...logTable.weightCol }}>
+            <div style={logTable.metricGhost}>-- kg</div>
+          </div>
+
+          <div style={{ ...logTable.cell, ...logTable.repsCol }}>
+            <div style={logTable.metricGhost}>--</div>
+          </div>
+
+          <div style={{ ...logTable.cell, ...logTable.checkCol }}>
+            <button type="button" style={logTable.addBtn} onClick={onEdit}>
+              {rows.length ? "Update Log" : "Add Set"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {exercise?.member_log?.note ? (
+        <div style={logTable.noteBox}>
+          <span style={logTable.noteLabel}>Note:</span> {exercise.member_log.note}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export default function Workouts() {
   const [data, setData] = useState({});
   const [meta, setMeta] = useState({
@@ -118,11 +219,18 @@ export default function Workouts() {
   });
 
   const [form, setForm] = useState({
-    weight: "",
-    sets_done: "",
-    reps_done: "",
+    sets: [],
     note: "",
   });
+
+  const createEmptyRows = (count = 3) =>
+    Array.from({ length: count }).map((_, i) => ({
+      key: `row-${i + 1}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      round: i + 1,
+      weight: "",
+      reps: "",
+      done: false,
+    }));
 
   const fetchWorkouts = async (dateValue = selectedDate) => {
     setLoading(true);
@@ -159,6 +267,22 @@ export default function Workouts() {
   };
 
   const openLogModal = (routine, exercise) => {
+    const plannedSets = Number(exercise?.sets || 3);
+    const savedSets = Array.isArray(exercise?.member_log?.sets)
+      ? exercise.member_log.sets
+      : [];
+
+    const rows =
+      savedSets.length > 0
+        ? savedSets.map((s, i) => ({
+            key: `saved-${i}-${Date.now()}`,
+            round: Number(s.round || i + 1),
+            weight: s.weight ?? "",
+            reps: s.reps ?? "",
+            done: !!s.done,
+          }))
+        : createEmptyRows(plannedSets > 0 ? plannedSets : 3);
+
     setLogModal({
       open: true,
       routine,
@@ -166,9 +290,7 @@ export default function Workouts() {
     });
 
     setForm({
-      weight: exercise?.member_log?.weight ?? "",
-      sets_done: exercise?.member_log?.sets_done ?? "",
-      reps_done: exercise?.member_log?.reps_done ?? "",
+      sets: rows,
       note: exercise?.member_log?.note ?? "",
     });
   };
@@ -181,11 +303,43 @@ export default function Workouts() {
     });
 
     setForm({
-      weight: "",
-      sets_done: "",
-      reps_done: "",
+      sets: [],
       note: "",
     });
+  };
+
+  const updateSetRow = (index, key, value) => {
+    setForm((prev) => ({
+      ...prev,
+      sets: prev.sets.map((row, i) =>
+        i === index ? { ...row, [key]: value } : row
+      ),
+    }));
+  };
+
+  const toggleSetDone = (index) => {
+    setForm((prev) => ({
+      ...prev,
+      sets: prev.sets.map((row, i) =>
+        i === index ? { ...row, done: !row.done } : row
+      ),
+    }));
+  };
+
+  const addSetRow = () => {
+    setForm((prev) => ({
+      ...prev,
+      sets: [
+        ...prev.sets,
+        {
+          key: `row-${prev.sets.length + 1}-${Date.now()}`,
+          round: prev.sets.length + 1,
+          weight: "",
+          reps: "",
+          done: false,
+        },
+      ],
+    }));
   };
 
   const saveLog = async () => {
@@ -194,15 +348,24 @@ export default function Workouts() {
     try {
       setSaving(true);
 
+      const cleanedSets = form.sets
+        .map((row, i) => ({
+          round: Number(row.round || i + 1),
+          weight:
+            row.weight === "" || row.weight == null ? null : Number(row.weight),
+          reps:
+            row.reps === "" || row.reps == null ? null : Number(row.reps),
+          done: !!row.done,
+        }))
+        .filter((row) => row.weight !== null || row.reps !== null || row.done);
+
       await api.post("/member/workouts/log", {
         routine_id: logModal.routine.routine_id,
         routine_exercise_id: logModal.exercise.routine_exercise_id,
         exercise_id: logModal.exercise.exercise_id,
         workout_date: selectedDate,
         day_of_week: logModal.exercise.day_of_week,
-        weight: form.weight === "" ? null : Number(form.weight),
-        sets_done: form.sets_done === "" ? null : Number(form.sets_done),
-        reps_done: form.reps_done === "" ? null : Number(form.reps_done),
+        sets: cleanedSets,
         note: form.note?.trim() ? form.note.trim() : null,
       });
 
@@ -232,7 +395,11 @@ export default function Workouts() {
           )}
 
           <div style={page.headerRow}>
-            <h2 style={page.title}>Workouts</h2>
+            <div>
+              <h2 style={page.title}>Workouts</h2>
+              <div style={page.subtitle}>Your daily workout plan and exercise log.</div>
+            </div>
+
             <div style={page.badge}>{day.slice(0, 3).toUpperCase()}</div>
           </div>
 
@@ -259,11 +426,7 @@ export default function Workouts() {
             <>
               <div style={tabs.wrap}>
                 {DAYS.map((d) => (
-                  <button
-                    key={d}
-                    style={tabs.btn(d === day)}
-                    onClick={() => handleDayChange(d)}
-                  >
+                  <button key={d} style={tabs.btn(d === day)} onClick={() => handleDayChange(d)}>
                     {d.slice(0, 3)}
                   </button>
                 ))}
@@ -272,12 +435,15 @@ export default function Workouts() {
               <div key={animKey} style={anim.wrap}>
                 {!routines.length ? (
                   <div style={{ ...page.dim, marginTop: 14 }}>
-                    No workouts for <b style={{ color: theme.colors.text }}>{day}</b>.
+                    No workouts for <b style={{ color: theme.colors.textStrong }}>{day}</b>.
                   </div>
                 ) : (
-                  <div style={{ marginTop: 16, display: "grid", gap: 16 }}>
+                  <div style={{ marginTop: 16, display: "grid", gap: 18 }}>
                     {routines.map((routine) => (
-                      <div key={`${routine.member_routine_id}-${routine.routine_id}`} style={routineCard.wrap}>
+                      <div
+                        key={`${routine.member_routine_id}-${routine.routine_id}`}
+                        style={routineCard.wrap}
+                      >
                         <div style={routineCard.head}>
                           <div style={{ minWidth: 0 }}>
                             <h3 style={routineCard.name}>{routine.routine_name}</h3>
@@ -286,19 +452,14 @@ export default function Workouts() {
                               <span style={routineCard.dateTag}>
                                 Source: {routine.source === "trainer" ? "Trainer" : "Website"}
                               </span>
-                              <span style={routineCard.dateTag}>
-                                Start: {routine.start_date || "-"}
-                              </span>
-                              <span style={routineCard.dateTag}>
-                                End: {routine.end_date || "-"}
-                              </span>
+                              <span style={routineCard.dateTag}>Start: {routine.start_date || "-"}</span>
+                              <span style={routineCard.dateTag}>End: {routine.end_date || "-"}</span>
                             </div>
 
                             {routine.description ? (
                               <div style={routineCard.desc}>{routine.description}</div>
                             ) : null}
                           </div>
-                          <div style={routineCard.line} />
                         </div>
 
                         <div style={exerciseList.wrap}>
@@ -309,31 +470,23 @@ export default function Workouts() {
                               <div
                                 key={`${x.routine_exercise_id}-${x.exercise_id}-${idx}`}
                                 style={exerciseCard.wrap}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.transform = "translateY(-3px)";
-                                  e.currentTarget.style.border = `1px solid ${theme.colors.borderSoft}`;
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.transform = "translateY(0)";
-                                  e.currentTarget.style.border = `1px solid ${theme.colors.border}`;
-                                }}
                               >
-                                <div style={exerciseCard.left}>
-                                  {imageSrc ? (
-                                    <img
-                                      src={imageSrc}
-                                      alt={x.exercise_name || "Exercise"}
-                                      style={exerciseCard.image}
-                                    />
-                                  ) : (
-                                    <div style={exerciseCard.placeholder}>
-                                      <span style={exerciseCard.placeholderIcon}>🏋️</span>
-                                      <span style={exerciseCard.placeholderText}>No image</span>
-                                    </div>
-                                  )}
-                                </div>
+                                <div style={exerciseCard.visualCol}>
+                                  <div style={exerciseCard.left}>
+                                    {imageSrc ? (
+                                      <img
+                                        src={imageSrc}
+                                        alt={x.exercise_name || "Exercise"}
+                                        style={exerciseCard.image}
+                                      />
+                                    ) : (
+                                      <div style={exerciseCard.placeholder}>
+                                        <span style={exerciseCard.placeholderIcon}>🏋️</span>
+                                        <span style={exerciseCard.placeholderText}>No image</span>
+                                      </div>
+                                    )}
+                                  </div>
 
-                                <div style={exerciseCard.right}>
                                   <div style={exerciseCard.topRow}>
                                     <div style={exerciseCard.titleCol}>
                                       <h4 style={exerciseCard.exerciseName}>
@@ -381,51 +534,13 @@ export default function Workouts() {
                                       {x.notes}
                                     </div>
                                   ) : null}
+                                </div>
 
-                                  {x.member_log ? (
-                                    <div style={memberLog.wrap}>
-                                      <div style={memberLog.title}>Your Log</div>
-                                      <div style={memberLog.grid}>
-                                        <div style={memberLog.item}>
-                                          <span style={memberLog.label}>Weight</span>
-                                          <span style={memberLog.value}>
-                                            {x.member_log.weight ?? "-"}{" "}
-                                            {x.member_log.weight != null ? "kg" : ""}
-                                          </span>
-                                        </div>
-
-                                        <div style={memberLog.item}>
-                                          <span style={memberLog.label}>Sets Done</span>
-                                          <span style={memberLog.value}>
-                                            {x.member_log.sets_done ?? "-"}
-                                          </span>
-                                        </div>
-
-                                        <div style={memberLog.item}>
-                                          <span style={memberLog.label}>Reps Done</span>
-                                          <span style={memberLog.value}>
-                                            {x.member_log.reps_done ?? "-"}
-                                          </span>
-                                        </div>
-                                      </div>
-
-                                      {x.member_log.note ? (
-                                        <div style={memberLog.note}>
-                                          <span style={memberLog.noteLabel}>Note:</span>{" "}
-                                          {x.member_log.note}
-                                        </div>
-                                      ) : null}
-                                    </div>
-                                  ) : null}
-
-                                  <div style={actionRow.wrap}>
-                                    <button
-                                      style={actionRow.primaryBtn}
-                                      onClick={() => openLogModal(routine, x)}
-                                    >
-                                      {x.member_log ? "Edit Log" : "Add Log"}
-                                    </button>
-                                  </div>
+                                <div style={exerciseCard.logCol}>
+                                  <WorkoutLogTable
+                                    exercise={x}
+                                    onEdit={() => openLogModal(routine, x)}
+                                  />
                                 </div>
                               </div>
                             );
@@ -444,66 +559,97 @@ export default function Workouts() {
       {logModal.open && (
         <div style={modal.backdrop} onClick={closeLogModal}>
           <div style={modal.box} onClick={(e) => e.stopPropagation()}>
+            <div style={modal.topPillRow}>
+              <div style={modal.topPill}>Log</div>
+              <div style={modal.timerGhost}>Workout Log</div>
+            </div>
+
             <div style={modal.header}>
               <div>
-                <h3 style={modal.title}>
-                  {logModal.exercise?.exercise_name || "Exercise"} Log
-                </h3>
+                <h3 style={modal.title}>{logModal.exercise?.exercise_name || "Exercise"}</h3>
                 <div style={modal.subtitle}>
-                  {selectedDate} • {logModal.exercise?.day_of_week || ""}
+                  {logModal.routine?.routine_name || "Routine"} • {selectedDate}
                 </div>
               </div>
             </div>
 
-            <div style={modal.grid}>
-              <div style={modal.field}>
-                <label style={modal.label}>Weight (kg)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={form.weight}
-                  onChange={(e) => setForm((s) => ({ ...s, weight: e.target.value }))}
-                  placeholder="e.g. 35"
-                  style={ui.input}
-                />
+            <div style={modal.tableWrap}>
+              <div style={modal.tableHead}>
+                <div style={modal.headCellSet}>Set</div>
+                <div style={modal.headCell}>Weight</div>
+                <div style={modal.headCell}>Reps</div>
+                <div style={modal.headCellIcon} />
               </div>
 
-              <div style={modal.fieldRow}>
-                <div style={modal.field}>
-                  <label style={modal.label}>Sets Done</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={form.sets_done}
-                    onChange={(e) => setForm((s) => ({ ...s, sets_done: e.target.value }))}
-                    placeholder="e.g. 4"
-                    style={ui.input}
-                  />
+              <div style={modal.tableBody}>
+                {form.sets.map((row, index) => (
+                  <div key={row.key} style={modal.tableRow}>
+                    <div style={modal.setCell}>
+                      <span style={modal.setIndex}>{row.round}</span>
+                      <span style={modal.setText}>{roundLabel(row.round)}</span>
+                    </div>
+
+                    <div style={modal.inputCell}>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={row.weight}
+                        onChange={(e) => updateSetRow(index, "weight", e.target.value)}
+                        placeholder="-- kg"
+                        style={modal.metricInput}
+                      />
+                    </div>
+
+                    <div style={modal.inputCell}>
+                      <input
+                        type="number"
+                        min="0"
+                        value={row.reps}
+                        onChange={(e) => updateSetRow(index, "reps", e.target.value)}
+                        placeholder="--"
+                        style={modal.metricInput}
+                      />
+                    </div>
+
+                    <div style={modal.checkCell}>
+                      <button
+                        type="button"
+                        style={row.done ? modal.checkBtnDone : modal.checkBtn}
+                        onClick={() => toggleSetDone(index)}
+                      >
+                        {row.done ? "✓" : ""}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <div style={modal.addSetRow}>
+                  <div style={modal.nextSetCell}>
+                    <span style={modal.nextSetIcon}>＋</span>
+                    <span style={modal.nextSetText}>Next Set</span>
+                  </div>
+
+                  <div style={modal.ghostMetric}>-- kg</div>
+                  <div style={modal.ghostMetric}>--</div>
+
+                  <div style={modal.addSetAction}>
+                    <button type="button" style={modal.addSetBtn} onClick={addSetRow}>
+                      Add Set
+                    </button>
+                  </div>
                 </div>
-
-                <div style={modal.field}>
-                  <label style={modal.label}>Reps Done</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={form.reps_done}
-                    onChange={(e) => setForm((s) => ({ ...s, reps_done: e.target.value }))}
-                    placeholder="e.g. 12"
-                    style={ui.input}
-                  />
-                </div>
               </div>
+            </div>
 
-              <div style={modal.field}>
-                <label style={modal.label}>Note</label>
-                <textarea
-                  value={form.note}
-                  onChange={(e) => setForm((s) => ({ ...s, note: e.target.value }))}
-                  placeholder="Write how the set felt, what weight you used, any difficulty, pain, or progress..."
-                  style={{ ...ui.input, minHeight: 120, resize: "vertical" }}
-                />
-              </div>
+            <div style={modal.noteField}>
+              <label style={modal.label}>Note</label>
+              <textarea
+                value={form.note}
+                onChange={(e) => setForm((s) => ({ ...s, note: e.target.value }))}
+                placeholder="Write how the workout felt, what weight you used, any progress, pain, or fatigue..."
+                style={modal.noteInput}
+              />
             </div>
 
             <div style={modal.actions}>
@@ -533,7 +679,7 @@ const page = {
   },
   card: {
     width: "100%",
-    padding: 22,
+    padding: 24,
     borderRadius: theme.radius.lg,
     background: theme.colors.card,
     backdropFilter: "blur(20px)",
@@ -545,26 +691,32 @@ const page = {
   },
   headerRow: {
     display: "flex",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
     gap: 12,
     marginBottom: 10,
   },
   title: {
     margin: 0,
-    fontSize: 22,
-    fontWeight: 900,
-    letterSpacing: 0.6,
+    fontSize: 30,
+    fontWeight: 800,
+    letterSpacing: "-0.02em",
+    color: theme.colors.textStrong,
+  },
+  subtitle: {
+    marginTop: 8,
+    color: theme.colors.textDim,
+    fontSize: 14,
   },
   badge: {
-    padding: "8px 10px",
+    padding: "8px 12px",
     borderRadius: 999,
-    border: `1px solid ${theme.colors.border}`,
-    background: "rgba(0,245,212,.10)",
-    color: theme.colors.primary,
-    fontWeight: 900,
+    border: "1px solid rgba(122,92,207,.18)",
+    background: "rgba(122,92,207,.10)",
+    color: theme.colors.accent,
+    fontWeight: 700,
     fontSize: 12,
-    letterSpacing: 1,
+    letterSpacing: 0.4,
   },
   dim: {
     color: theme.colors.textDim,
@@ -572,14 +724,16 @@ const page = {
   },
   emptyBox: {
     marginTop: 12,
-    padding: 14,
+    padding: 16,
     borderRadius: theme.radius.md,
-    background: theme.colors.surface,
+    background: "rgba(255,255,255,.78)",
     border: `1px solid ${theme.colors.border}`,
+    boxShadow: theme.shadow.soft,
   },
   emptyTitle: {
-    fontWeight: 900,
+    fontWeight: 800,
     marginBottom: 6,
+    color: theme.colors.textStrong,
   },
   dateWrap: {
     display: "flex",
@@ -591,14 +745,15 @@ const page = {
   },
   dateLabel: {
     fontSize: 12,
-    fontWeight: 800,
-    letterSpacing: 0.8,
+    fontWeight: 700,
+    letterSpacing: 0.6,
     textTransform: "uppercase",
     color: theme.colors.textDim,
   },
   dateInput: {
     ...ui.input,
     padding: "10px 12px",
+    background: "rgba(255,255,255,.9)",
   },
 };
 
@@ -614,9 +769,9 @@ const countdown = {
   wrap: {
     padding: 18,
     borderRadius: 22,
-    border: `1px solid rgba(0,245,212,.20)`,
-    background: "linear-gradient(135deg, rgba(0,245,212,.10), rgba(124,58,237,.10))",
-    boxShadow: "0 12px 30px rgba(0,0,0,.18)",
+    border: `1px solid rgba(122,92,207,.18)`,
+    background: "linear-gradient(135deg, rgba(122,92,207,.10), rgba(242,178,79,.12))",
+    boxShadow: theme.shadow.soft,
     display: "grid",
     gap: 14,
   },
@@ -630,15 +785,15 @@ const countdown = {
     fontSize: 11,
     textTransform: "uppercase",
     letterSpacing: 1,
-    fontWeight: 900,
-    color: theme.colors.primary,
+    fontWeight: 800,
+    color: theme.colors.accent,
     marginBottom: 6,
   },
   title: {
     margin: 0,
     fontSize: 20,
-    fontWeight: 900,
-    color: theme.colors.text,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
   },
   sub: {
     marginTop: 8,
@@ -654,31 +809,32 @@ const countdown = {
     padding: "16px 12px",
     borderRadius: 18,
     border: `1px solid ${theme.colors.border}`,
-    background: "rgba(255,255,255,.05)",
+    background: "rgba(255,255,255,.72)",
     display: "grid",
     placeItems: "center",
     gap: 8,
+    boxShadow: theme.shadow.soft,
   },
   num: {
     fontSize: 28,
-    fontWeight: 900,
-    color: theme.colors.text,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
     lineHeight: 1,
   },
   label: {
     fontSize: 12,
-    fontWeight: 800,
+    fontWeight: 700,
     color: theme.colors.textDim,
     textTransform: "uppercase",
-    letterSpacing: 0.8,
+    letterSpacing: 0.6,
   },
   expired: {
     padding: "12px 14px",
     borderRadius: 14,
-    background: "rgba(255,59,59,.10)",
+    background: theme.colors.dangerBg,
     border: `1px solid ${theme.colors.dangerBorder}`,
     color: theme.colors.dangerText,
-    fontWeight: 800,
+    fontWeight: 700,
   },
 };
 
@@ -692,13 +848,13 @@ const tabs = {
   btn: (active) => ({
     padding: "10px 12px",
     borderRadius: 999,
-    border: `1px solid ${theme.colors.border}`,
-    background: active ? "rgba(0,245,212,.14)" : "rgba(255,255,255,.03)",
-    color: active ? theme.colors.primary : theme.colors.textDim,
-    fontWeight: 900,
+    border: `1px solid ${active ? "rgba(122,92,207,.22)" : theme.colors.border}`,
+    background: active ? "rgba(122,92,207,.10)" : "rgba(255,255,255,.72)",
+    color: active ? theme.colors.accent : theme.colors.textDim,
+    fontWeight: 700,
     cursor: "pointer",
     transition: theme.motion.base,
-    boxShadow: active ? theme.shadow.glow : "none",
+    boxShadow: active ? theme.shadow.soft : "none",
     userSelect: "none",
   }),
 };
@@ -724,28 +880,28 @@ if (typeof document !== "undefined" && !document.getElementById("workouts-anim-s
 
 const routineCard = {
   wrap: {
-    padding: 16,
+    padding: 18,
     borderRadius: theme.radius.lg,
-    background: theme.colors.surface,
+    background: "rgba(255,255,255,.48)",
     border: `1px solid ${theme.colors.border}`,
+    boxShadow: theme.shadow.soft,
   },
   head: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
+    display: "grid",
+    gap: 10,
     marginBottom: 14,
   },
   name: {
     margin: 0,
-    fontSize: 16,
-    fontWeight: 900,
-    letterSpacing: 0.3,
+    fontSize: 20,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
   },
   dateMeta: {
     display: "flex",
     gap: 8,
     flexWrap: "wrap",
-    marginTop: 8,
+    marginTop: 2,
   },
   dateTag: {
     display: "inline-flex",
@@ -753,11 +909,11 @@ const routineCard = {
     padding: "6px 10px",
     borderRadius: 999,
     border: `1px solid ${theme.colors.border}`,
-    background: "rgba(255,255,255,.04)",
+    background: "rgba(255,255,255,.72)",
     color: theme.colors.textDim,
     fontSize: 12,
-    fontWeight: 800,
-    letterSpacing: 0.4,
+    fontWeight: 700,
+    letterSpacing: 0.2,
   },
   desc: {
     marginTop: 6,
@@ -765,41 +921,42 @@ const routineCard = {
     fontSize: 13,
     lineHeight: 1.5,
   },
-  line: {
-    height: 1,
-    flex: 1,
-    background: `linear-gradient(90deg, ${theme.colors.border}, transparent)`,
-    opacity: 0.9,
-  },
 };
 
 const exerciseList = {
   wrap: {
     display: "grid",
-    gap: 14,
+    gap: 18,
   },
 };
 
 const exerciseCard = {
   wrap: {
-    display: "flex",
-    alignItems: "stretch",
-    gap: 14,
-    padding: 14,
-    borderRadius: 20,
+    display: "grid",
+    gridTemplateColumns: "320px 1fr",
+    gap: 16,
+    padding: 16,
+    borderRadius: 24,
     overflow: "hidden",
     border: `1px solid ${theme.colors.border}`,
-    background: "rgba(255,255,255,.03)",
+    background: "rgba(255,255,255,.78)",
     transition: "all .22s ease",
-    boxShadow: "0 10px 30px rgba(0,0,0,.18)",
+    boxShadow: theme.shadow.soft,
+  },
+  visualCol: {
+    display: "grid",
+    gap: 12,
+    alignContent: "start",
+  },
+  logCol: {
+    minWidth: 0,
   },
   left: {
-    width: 132,
-    minWidth: 132,
-    height: 132,
-    borderRadius: 18,
+    width: "100%",
+    height: 210,
+    borderRadius: 20,
     overflow: "hidden",
-    background: "rgba(255,255,255,.04)",
+    background: "rgba(255,255,255,.68)",
     border: `1px solid ${theme.colors.border}`,
     flexShrink: 0,
   },
@@ -818,7 +975,7 @@ const exerciseCard = {
     flexDirection: "column",
     gap: 8,
     color: theme.colors.textDim,
-    background: "linear-gradient(135deg, rgba(255,255,255,.03), rgba(255,255,255,.06))",
+    background: "linear-gradient(135deg, rgba(255,255,255,.65), rgba(245,240,248,.95))",
   },
   placeholderIcon: {
     fontSize: 24,
@@ -826,12 +983,6 @@ const exerciseCard = {
   placeholderText: {
     fontSize: 12,
     fontWeight: 700,
-  },
-  right: {
-    flex: 1,
-    minWidth: 0,
-    display: "grid",
-    gap: 12,
   },
   topRow: {
     display: "flex",
@@ -845,23 +996,23 @@ const exerciseCard = {
   },
   exerciseName: {
     margin: 0,
-    fontSize: 18,
-    fontWeight: 900,
-    color: theme.colors.text,
+    fontSize: 22,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
     lineHeight: 1.2,
   },
   coachNote: {
     padding: "10px 12px",
     borderRadius: 14,
     border: `1px solid ${theme.colors.border}`,
-    background: "rgba(255,255,255,.03)",
+    background: "rgba(255,255,255,.72)",
     color: theme.colors.textDim,
     fontSize: 13,
     lineHeight: 1.5,
   },
   coachNoteLabel: {
-    color: theme.colors.text,
-    fontWeight: 800,
+    color: theme.colors.textStrong,
+    fontWeight: 700,
   },
 };
 
@@ -879,11 +1030,11 @@ const metaRow = {
     padding: "6px 10px",
     borderRadius: 999,
     border: `1px solid ${theme.colors.border}`,
-    background: "rgba(255,255,255,.04)",
+    background: "rgba(255,255,255,.72)",
     color: theme.colors.textDim,
     fontSize: 12,
-    fontWeight: 800,
-    letterSpacing: 0.4,
+    fontWeight: 700,
+    letterSpacing: 0.2,
   },
 };
 
@@ -894,22 +1045,22 @@ const difficulty = {
     const isMid = d.includes("medium") || d.includes("intermediate");
 
     const bg = isHard
-      ? "rgba(255,59,59,.12)"
+      ? "rgba(235,87,87,.12)"
       : isMid
-      ? "rgba(124,58,237,.14)"
-      : "rgba(0,245,212,.12)";
+      ? "rgba(122,92,207,.10)"
+      : "rgba(242,178,79,.14)";
 
     const border = isHard
       ? theme.colors.dangerBorder
       : isMid
-      ? "rgba(124,58,237,.35)"
-      : "rgba(0,245,212,.30)";
+      ? "rgba(122,92,207,.18)"
+      : "rgba(242,178,79,.20)";
 
     const color = isHard
       ? theme.colors.dangerText
       : isMid
-      ? "#c4b5fd"
-      : theme.colors.primary;
+      ? theme.colors.accent
+      : "#9a6107";
 
     return {
       display: "inline-flex",
@@ -919,9 +1070,9 @@ const difficulty = {
       border: `1px solid ${border}`,
       background: bg,
       color,
-      fontWeight: 900,
+      fontWeight: 700,
       fontSize: 12,
-      letterSpacing: 0.6,
+      letterSpacing: 0.2,
       textTransform: "capitalize",
     };
   },
@@ -934,95 +1085,216 @@ const stats = {
     gap: 10,
   },
   item: {
-    padding: "10px 12px",
+    padding: "12px 12px",
     borderRadius: 14,
     border: `1px solid ${theme.colors.border}`,
-    background: "rgba(255,255,255,.03)",
+    background: "rgba(255,255,255,.72)",
     display: "grid",
     gap: 6,
+    boxShadow: theme.shadow.soft,
   },
   label: {
     fontSize: 11,
     textTransform: "uppercase",
     letterSpacing: 0.8,
     color: theme.colors.textFaint,
-    fontWeight: 800,
+    fontWeight: 700,
   },
   value: {
-    color: theme.colors.text,
-    fontWeight: 900,
+    color: theme.colors.textStrong,
+    fontWeight: 800,
     fontSize: 15,
   },
 };
 
-const memberLog = {
+const logTable = {
   wrap: {
-    padding: 12,
-    borderRadius: 16,
-    border: `1px solid rgba(0,245,212,.18)`,
-    background: "rgba(0,245,212,.06)",
-    display: "grid",
-    gap: 10,
-  },
-  title: {
-    fontWeight: 900,
-    color: theme.colors.primary,
-    fontSize: 13,
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(100px, 1fr))",
-    gap: 10,
-  },
-  item: {
-    padding: "10px 12px",
-    borderRadius: 14,
-    background: "rgba(255,255,255,.04)",
+    padding: 18,
+    borderRadius: 28,
+    background:
+      "linear-gradient(180deg, rgba(255,255,255,.78), rgba(247,242,250,.92))",
     border: `1px solid ${theme.colors.border}`,
+    boxShadow: "0 18px 42px rgba(98,78,133,.10)",
     display: "grid",
-    gap: 6,
+    gap: 14,
   },
-  label: {
-    fontSize: 11,
-    color: theme.colors.textFaint,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    fontWeight: 800,
+  topBar: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
   },
-  value: {
-    fontSize: 14,
-    fontWeight: 900,
-    color: theme.colors.text,
-  },
-  note: {
-    color: theme.colors.textDim,
+  logPill: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "8px 14px",
+    borderRadius: 999,
+    background: "rgba(122,92,207,.10)",
+    border: "1px solid rgba(122,92,207,.18)",
+    color: theme.colors.accent,
+    fontWeight: 700,
     fontSize: 13,
-    lineHeight: 1.5,
   },
-  noteLabel: {
-    color: theme.colors.text,
+  editBtn: {
+    padding: "8px 14px",
+    borderRadius: 14,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.75)",
+    color: theme.colors.textStrong,
+    fontWeight: 700,
+    cursor: "pointer",
+    boxShadow: theme.shadow.soft,
+  },
+  exerciseTitle: {
+    fontSize: 22,
     fontWeight: 800,
+    color: theme.colors.textStrong,
   },
-};
-
-const actionRow = {
-  wrap: {
+  exerciseSub: {
+    color: theme.colors.textDim,
+    fontSize: 14,
+    marginTop: -6,
+  },
+  tableShell: {
+    borderRadius: 26,
+    border: `1px solid rgba(99,78,133,.10)`,
+    background: "rgba(255,255,255,.54)",
+    overflow: "hidden",
+  },
+  headerRow: {
+    display: "grid",
+    gridTemplateColumns: "2.2fr 1.1fr 1.1fr .6fr",
+    background: "rgba(255,255,255,.38)",
+    borderBottom: `1px solid ${theme.colors.border}`,
+  },
+  row: {
+    display: "grid",
+    gridTemplateColumns: "2.2fr 1.1fr 1.1fr .6fr",
+    borderBottom: `1px solid ${theme.colors.border}`,
+  },
+  addRow: {
+    display: "grid",
+    gridTemplateColumns: "2.2fr 1.1fr 1.1fr .8fr",
+    background: "rgba(255,255,255,.34)",
+  },
+  headerCell: {
+    padding: "14px 16px",
+    fontWeight: 700,
+    color: theme.colors.textDim,
+    fontSize: 16,
+  },
+  cell: {
+    padding: "12px 16px",
     display: "flex",
     alignItems: "center",
-    gap: 10,
-    flexWrap: "wrap",
+    minHeight: 72,
   },
-  primaryBtn: {
-    padding: "10px 14px",
-    borderRadius: 12,
+  setCol: {
+    gap: 12,
+  },
+  weightCol: {
+    justifyContent: "center",
+  },
+  repsCol: {
+    justifyContent: "center",
+  },
+  checkCol: {
+    justifyContent: "center",
+  },
+  setIndex: {
+    width: 28,
+    color: theme.colors.textDim,
+    fontWeight: 700,
+    fontSize: 18,
+    flexShrink: 0,
+  },
+  setLabel: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: theme.colors.textStrong,
+  },
+  metricPill: {
+    minWidth: 130,
+    padding: "12px 18px",
+    borderRadius: 999,
+    background: "rgba(122,92,207,.10)",
+    color: theme.colors.accent,
+    fontWeight: 800,
+    fontSize: 16,
+    textAlign: "center",
+  },
+  metricGhost: {
+    minWidth: 130,
+    padding: "12px 18px",
+    borderRadius: 999,
+    border: "1.5px dashed rgba(122,92,207,.18)",
+    color: theme.colors.textFaint,
+    fontWeight: 700,
+    fontSize: 16,
+    textAlign: "center",
+    background: "rgba(255,255,255,.28)",
+  },
+  checkDone: {
+    width: 42,
+    height: 42,
+    borderRadius: 999,
+    display: "grid",
+    placeItems: "center",
+    background: "rgba(111,207,151,.14)",
+    border: "1px solid rgba(111,207,151,.24)",
+    color: "#3d8b5d",
+    fontWeight: 900,
+    fontSize: 22,
+  },
+  checkIdle: {
+    width: 42,
+    height: 42,
+    borderRadius: 999,
+    display: "grid",
+    placeItems: "center",
+    background: "rgba(255,255,255,.65)",
     border: `1px solid ${theme.colors.border}`,
-    background: "rgba(0,245,212,.10)",
-    color: theme.colors.primary,
+  },
+  nextSetIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 999,
+    display: "grid",
+    placeItems: "center",
+    background: "rgba(122,92,207,.10)",
+    border: "1px solid rgba(122,92,207,.18)",
+    color: theme.colors.accent,
+    fontWeight: 800,
+    fontSize: 18,
+  },
+  nextSetLabel: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: theme.colors.textStrong,
+  },
+  addBtn: {
+    padding: "12px 18px",
+    borderRadius: 999,
+    border: "none",
+    background: theme.gradients.primary,
+    color: "#4a2d00",
     fontWeight: 800,
     cursor: "pointer",
-    transition: theme.motion.base,
+    boxShadow: theme.shadow.button,
+    whiteSpace: "nowrap",
+  },
+  noteBox: {
+    padding: "12px 14px",
+    borderRadius: 16,
+    background: "rgba(255,255,255,.72)",
+    border: `1px solid ${theme.colors.border}`,
+    color: theme.colors.textDim,
+    fontSize: 13,
+    lineHeight: 1.6,
+  },
+  noteLabel: {
+    color: theme.colors.textStrong,
+    fontWeight: 700,
   },
 };
 
@@ -1030,55 +1302,247 @@ const modal = {
   backdrop: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,.55)",
+    background: "rgba(47,35,71,.28)",
     display: "grid",
     placeItems: "center",
     padding: 20,
     zIndex: 9999,
+    backdropFilter: "blur(8px)",
   },
   box: {
     width: "100%",
-    maxWidth: 560,
+    maxWidth: 820,
     borderRadius: theme.radius.lg,
-    background: theme.colors.card,
+    background: "rgba(255,255,255,.86)",
     border: `1px solid ${theme.colors.border}`,
     boxShadow: theme.shadow.card,
     padding: 20,
     backdropFilter: "blur(20px)",
     color: theme.colors.text,
   },
+  topPillRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+    gap: 12,
+  },
+  topPill: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "8px 14px",
+    borderRadius: 999,
+    background: "rgba(122,92,207,.10)",
+    border: "1px solid rgba(122,92,207,.18)",
+    color: theme.colors.accent,
+    fontWeight: 700,
+    fontSize: 13,
+  },
+  timerGhost: {
+    color: theme.colors.textDim,
+    fontSize: 13,
+    fontWeight: 700,
+  },
   header: {
     marginBottom: 16,
   },
   title: {
     margin: 0,
-    fontSize: 20,
-    fontWeight: 900,
+    fontSize: 24,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
   },
   subtitle: {
     marginTop: 8,
     color: theme.colors.textDim,
     fontSize: 13,
   },
-  grid: {
-    display: "grid",
-    gap: 12,
+  tableWrap: {
+    borderRadius: 28,
+    overflow: "hidden",
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.58)",
   },
-  field: {
+  tableHead: {
+    display: "grid",
+    gridTemplateColumns: "2.2fr 1.1fr 1.1fr .7fr",
+    padding: "0",
+    borderBottom: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.32)",
+  },
+  headCellSet: {
+    padding: "14px 18px",
+    fontWeight: 700,
+    color: theme.colors.textDim,
+    fontSize: 18,
+  },
+  headCell: {
+    padding: "14px 18px",
+    fontWeight: 700,
+    color: theme.colors.textDim,
+    fontSize: 18,
+    textAlign: "center",
+  },
+  headCellIcon: {
+    padding: "14px 18px",
+  },
+  tableBody: {
+    display: "grid",
+  },
+  tableRow: {
+    display: "grid",
+    gridTemplateColumns: "2.2fr 1.1fr 1.1fr .7fr",
+    borderBottom: `1px solid ${theme.colors.border}`,
+    minHeight: 78,
+  },
+  setCell: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    padding: "12px 18px",
+  },
+  setIndex: {
+    width: 28,
+    color: theme.colors.textDim,
+    fontWeight: 700,
+    fontSize: 18,
+    flexShrink: 0,
+  },
+  setText: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: theme.colors.textStrong,
+  },
+  inputCell: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "10px 14px",
+  },
+  metricInput: {
+    width: "100%",
+    maxWidth: 140,
+    padding: "12px 16px",
+    borderRadius: 999,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(122,92,207,.08)",
+    color: theme.colors.textStrong,
+    outline: "none",
+    fontSize: 16,
+    fontWeight: 700,
+    textAlign: "center",
+    boxSizing: "border-box",
+  },
+  checkCell: {
+    display: "grid",
+    placeItems: "center",
+    padding: "10px",
+  },
+  checkBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 999,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.7)",
+    color: theme.colors.textDim,
+    cursor: "pointer",
+    fontWeight: 800,
+    fontSize: 18,
+  },
+  checkBtnDone: {
+    width: 42,
+    height: 42,
+    borderRadius: 999,
+    border: "1px solid rgba(111,207,151,.24)",
+    background: "rgba(111,207,151,.14)",
+    color: "#3d8b5d",
+    cursor: "pointer",
+    fontWeight: 900,
+    fontSize: 18,
+  },
+  addSetRow: {
+    display: "grid",
+    gridTemplateColumns: "2.2fr 1.1fr 1.1fr .9fr",
+    minHeight: 84,
+    background: "rgba(255,255,255,.26)",
+  },
+  nextSetCell: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    padding: "14px 18px",
+  },
+  nextSetIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 999,
+    display: "grid",
+    placeItems: "center",
+    background: "rgba(122,92,207,.10)",
+    border: "1px solid rgba(122,92,207,.18)",
+    color: theme.colors.accent,
+    fontWeight: 800,
+    fontSize: 18,
+    flexShrink: 0,
+  },
+  nextSetText: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: theme.colors.textStrong,
+  },
+  ghostMetric: {
+    margin: "auto",
+    minWidth: 130,
+    padding: "12px 16px",
+    borderRadius: 999,
+    border: "1.5px dashed rgba(122,92,207,.18)",
+    color: theme.colors.textFaint,
+    fontWeight: 700,
+    fontSize: 16,
+    textAlign: "center",
+    background: "rgba(255,255,255,.28)",
+  },
+  addSetAction: {
+    display: "grid",
+    placeItems: "center",
+    padding: "10px 14px",
+  },
+  addSetBtn: {
+    padding: "12px 20px",
+    borderRadius: 999,
+    border: "none",
+    background: theme.gradients.primary,
+    color: "#4a2d00",
+    fontWeight: 800,
+    cursor: "pointer",
+    boxShadow: theme.shadow.button,
+    whiteSpace: "nowrap",
+  },
+  noteField: {
+    marginTop: 16,
     display: "grid",
     gap: 8,
   },
-  fieldRow: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 12,
-  },
   label: {
     fontSize: 12,
-    fontWeight: 800,
+    fontWeight: 700,
     color: theme.colors.textDim,
     letterSpacing: 0.5,
     textTransform: "uppercase",
+  },
+  noteInput: {
+    width: "100%",
+    minHeight: 120,
+    padding: "14px 16px",
+    borderRadius: 18,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.9)",
+    color: theme.colors.text,
+    outline: "none",
+    resize: "vertical",
+    boxSizing: "border-box",
+    fontSize: 14,
+    lineHeight: 1.6,
   },
   actions: {
     display: "flex",
@@ -1090,24 +1554,25 @@ const modal = {
     flex: 1,
     minWidth: 140,
     padding: "14px 16px",
-    borderRadius: theme.radius.md,
+    borderRadius: theme.radius.pill,
     border: "none",
-    fontWeight: 900,
-    letterSpacing: 0.8,
+    fontWeight: 800,
+    letterSpacing: 0.2,
     cursor: "pointer",
     background: theme.gradients.primary,
-    color: "#061018",
-    boxShadow: theme.shadow.glow,
+    color: "#4a2d00",
+    boxShadow: theme.shadow.button,
   },
   cancelBtn: {
     flex: 1,
     minWidth: 140,
     padding: "14px 16px",
-    borderRadius: theme.radius.md,
+    borderRadius: theme.radius.pill,
     border: `1px solid ${theme.colors.border}`,
-    fontWeight: 800,
+    fontWeight: 700,
     cursor: "pointer",
-    background: "rgba(255,255,255,.05)",
+    background: "rgba(255,255,255,.72)",
     color: theme.colors.text,
+    boxShadow: theme.shadow.soft,
   },
 };

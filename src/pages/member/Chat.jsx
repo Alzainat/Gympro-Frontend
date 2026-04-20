@@ -125,8 +125,8 @@ export default function Chat() {
                       onClick={() => openTrainer(t)}
                       style={{
                         ...p.item,
-                        background: active ? "rgba(0,245,212,.08)" : "transparent",
-                        borderColor: active ? "rgba(0,245,212,.25)" : theme.colors.border,
+                        background: active ? "rgba(122,92,207,.08)" : "transparent",
+                        borderColor: active ? "rgba(122,92,207,.18)" : theme.colors.border,
                       }}
                     >
                       <div style={p.itemLeft}>
@@ -270,12 +270,11 @@ const p = {
     zIndex: 1,
   },
 
-  // ✅ بدل minHeight استخدم height لتثبيت التخطيط
   wrap: {
     display: "grid",
     gridTemplateColumns: "320px 1fr",
-    gap: 14,
-    height: "calc(100vh - 36px)",
+    gap: 16,
+    height: "calc(100vh - 48px)",
     minHeight: 0,
   },
 
@@ -290,7 +289,7 @@ const p = {
   },
 
   leftHeader: {
-    padding: 14,
+    padding: 16,
     borderBottom: `1px solid ${theme.colors.border}`,
     display: "flex",
     justifyContent: "space-between",
@@ -298,22 +297,32 @@ const p = {
     gap: 10,
   },
 
-  leftTitle: { fontWeight: 950, letterSpacing: 0.4, color: theme.colors.text },
-  leftSub: { marginTop: 4, fontSize: 12, color: theme.colors.textDim },
+  leftTitle: {
+    fontWeight: 800,
+    color: theme.colors.textStrong,
+    fontSize: 20,
+  },
+
+  leftSub: {
+    marginTop: 4,
+    fontSize: 13,
+    color: theme.colors.textDim,
+  },
 
   refreshBtn: {
-    padding: "9px 10px",
-    borderRadius: theme.radius.md,
-    border: `1px solid ${theme.colors.borderSoft}`,
-    background: "rgba(255,255,255,.04)",
+    padding: "9px 12px",
+    borderRadius: theme.radius.pill,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.72)",
     color: theme.colors.textDim,
-    fontWeight: 900,
+    fontWeight: 700,
     cursor: "pointer",
     transition: theme.motion.base,
+    boxShadow: theme.shadow.soft,
   },
 
   mutedBox: {
-    padding: 12,
+    padding: 14,
     color: theme.colors.textDim,
   },
 
@@ -341,21 +350,22 @@ const p = {
   },
 
   avatar: {
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
     borderRadius: 999,
-    background: "rgba(255,255,255,.06)",
-    border: `1px solid ${theme.colors.borderSoft}`,
+    background: "linear-gradient(135deg, rgba(122,92,207,.16), rgba(242,178,79,.18))",
+    border: `1px solid ${theme.colors.border}`,
     display: "grid",
     placeItems: "center",
-    fontWeight: 950,
-    color: theme.colors.text,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
     flexShrink: 0,
   },
 
   itemName: {
-    fontWeight: 950,
+    fontWeight: 700,
     fontSize: 14,
+    color: theme.colors.textStrong,
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
@@ -377,11 +387,11 @@ const p = {
     borderRadius: 999,
     display: "grid",
     placeItems: "center",
-    fontWeight: 950,
+    fontWeight: 800,
     fontSize: 12,
-    background: "rgba(0,245,212,.14)",
-    color: theme.colors.primary,
-    border: "1px solid rgba(0,245,212,.30)",
+    background: "rgba(242,178,79,.16)",
+    color: "#9a6107",
+    border: "1px solid rgba(242,178,79,.28)",
     flexShrink: 0,
   },
 
@@ -394,18 +404,18 @@ const p = {
     gridTemplateRows: "auto 1fr auto",
     backdropFilter: "blur(18px)",
     boxShadow: theme.shadow.card,
-
     height: "100%",
-    minHeight: 0, // ✅ ضروري مع grid
+    minHeight: 0,
   },
 
   topBar: {
-    padding: 14,
+    padding: 16,
     borderBottom: `1px solid ${theme.colors.border}`,
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     gap: 10,
+    background: "rgba(255,255,255,.35)",
   },
 
   topLeft: {
@@ -416,128 +426,146 @@ const p = {
   },
 
   avatarLg: {
-    width: 42,
-    height: 42,
+    width: 44,
+    height: 44,
     borderRadius: 999,
-    background: "rgba(0,245,212,.12)",
-    border: "1px solid rgba(0,245,212,.28)",
+    background: "linear-gradient(135deg, rgba(122,92,207,.16), rgba(242,178,79,.18))",
+    border: `1px solid ${theme.colors.border}`,
     display: "grid",
     placeItems: "center",
-    fontWeight: 950,
-    color: theme.colors.primary,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
     flexShrink: 0,
   },
 
   topName: {
-    fontWeight: 950,
-    color: theme.colors.text,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
   },
 
-  topRole: { color: theme.colors.textDim, fontSize: 13, marginTop: 3 },
-
-  topActions: { display: "flex", gap: 8, alignItems: "center" },
-
-  ghostBtn: {
-    padding: "9px 10px",
-    borderRadius: theme.radius.md,
-    border: `1px solid ${theme.colors.borderSoft}`,
-    background: "rgba(255,255,255,.04)",
+  topRole: {
     color: theme.colors.textDim,
-    fontWeight: 900,
-    cursor: "pointer",
-    transition: theme.motion.base,
+    fontSize: 13,
+    marginTop: 3,
   },
 
-  // ✅ ده لازم يكون scrollable داخل grid
+  topActions: {
+    display: "flex",
+    gap: 8,
+    alignItems: "center",
+  },
+
+  ghostBtn: {
+    padding: "9px 12px",
+    borderRadius: theme.radius.pill,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.72)",
+    color: theme.colors.textDim,
+    fontWeight: 700,
+    cursor: "pointer",
+    transition: theme.motion.base,
+    boxShadow: theme.shadow.soft,
+  },
+
   thread: {
-    padding: 14,
+    padding: 16,
     overflow: "auto",
     minHeight: 0,
+    background:
+      "linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.08))",
   },
 
   bubble: {
     maxWidth: "70%",
-    padding: "10px 12px",
-    borderRadius: theme.radius.md,
-    border: `1px solid ${theme.colors.borderSoft}`,
-    background: theme.colors.surface,
-    boxShadow: "0 10px 26px rgba(0,0,0,.35)",
+    padding: "11px 13px",
+    borderRadius: 18,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.82)",
+    boxShadow: theme.shadow.soft,
+    color: theme.colors.text,
   },
 
   mine: {
-    background: "rgba(0,245,212,.10)",
-    borderColor: "rgba(0,245,212,.24)",
+    background: "linear-gradient(135deg, rgba(242,178,79,.24), rgba(242,178,79,.12))",
+    borderColor: "rgba(242,178,79,.22)",
   },
 
-  theirs: {},
+  theirs: {
+    background: "rgba(255,255,255,.86)",
+  },
 
   msgAvatarMine: {
     width: 32,
     height: 32,
     borderRadius: 999,
-    background: "rgba(0,245,212,.12)",
-    border: "1px solid rgba(0,245,212,.28)",
+    background: "rgba(242,178,79,.18)",
+    border: "1px solid rgba(242,178,79,.28)",
     display: "grid",
     placeItems: "center",
-    fontWeight: 950,
-    color: theme.colors.primary,
+    fontWeight: 800,
+    color: "#9a6107",
     flexShrink: 0,
-    boxShadow: "0 8px 20px rgba(0,0,0,.25)",
+    boxShadow: theme.shadow.soft,
   },
 
   msgAvatarTheirs: {
     width: 32,
     height: 32,
     borderRadius: 999,
-    background: "rgba(255,255,255,.06)",
-    border: `1px solid ${theme.colors.borderSoft}`,
+    background: "rgba(122,92,207,.12)",
+    border: "1px solid rgba(122,92,207,.18)",
     display: "grid",
     placeItems: "center",
-    fontWeight: 950,
-    color: theme.colors.text,
+    fontWeight: 800,
+    color: theme.colors.accent,
     flexShrink: 0,
-    boxShadow: "0 8px 20px rgba(0,0,0,.25)",
+    boxShadow: theme.shadow.soft,
   },
 
-  time: { opacity: 0.75, fontSize: 11, marginTop: 6, color: theme.colors.textDim },
+  time: {
+    opacity: 0.8,
+    fontSize: 11,
+    marginTop: 6,
+    color: theme.colors.textDim,
+  },
 
   composer: {
     display: "flex",
     gap: 10,
     padding: 12,
     borderTop: `1px solid ${theme.colors.border}`,
-    background: "rgba(0,0,0,.10)",
+    background: "rgba(255,255,255,.4)",
   },
 
   input: {
     ...ui.input,
     flex: 1,
-    height: 44,
+    height: 46,
   },
 
   sendBtn: {
-    padding: "12px 14px",
-    borderRadius: theme.radius.md,
+    padding: "12px 16px",
+    borderRadius: theme.radius.pill,
     border: "none",
-    fontWeight: 950,
+    fontWeight: 800,
     background: theme.gradients.primary,
-    color: "#061018",
+    color: "#4a2d00",
     cursor: "pointer",
-    boxShadow: theme.shadow.glow,
+    boxShadow: theme.shadow.button,
     transition: theme.motion.base,
   },
 
   empty: {
-    padding: 18,
+    padding: 22,
     color: theme.colors.textDim,
   },
 
   emptyTitle: {
-    fontWeight: 950,
-    color: theme.colors.text,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
     marginBottom: 6,
   },
 

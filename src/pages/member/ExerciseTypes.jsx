@@ -247,22 +247,33 @@ const p = {
     alignItems: "flex-end",
     gap: 16,
     flexWrap: "wrap",
-    marginBottom: 18,
+    marginBottom: 20,
   },
 
   kicker: {
     display: "inline-flex",
-    padding: "6px 10px",
+    padding: "7px 14px",
     borderRadius: 999,
-    border: `1px solid ${theme.colors.borderSoft}`,
-    background: "rgba(255,255,255,.05)",
-    fontWeight: 950,
-    letterSpacing: 0.3,
-    color: theme.colors.text,
+    border: "1px solid rgba(122,92,207,.18)",
+    background: "rgba(122,92,207,.10)",
+    fontWeight: 800,
+    letterSpacing: 0.2,
+    color: theme.colors.accent,
   },
 
-  h2: { margin: "10px 0 0", fontSize: 26, fontWeight: 950, color: theme.colors.text },
-  sub: { margin: "8px 0 0", color: theme.colors.textDim, lineHeight: 1.5 },
+  h2: {
+    margin: "12px 0 0",
+    fontSize: 30,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
+    letterSpacing: "-0.02em",
+  },
+
+  sub: {
+    margin: "8px 0 0",
+    color: theme.colors.textDim,
+    lineHeight: 1.5,
+  },
 
   searchWrap: {
     width: 340,
@@ -271,35 +282,60 @@ const p = {
     gap: 8,
   },
 
-  searchLabel: { fontSize: 12, color: theme.colors.textFaint, fontWeight: 900 },
+  searchLabel: {
+    fontSize: 12,
+    color: theme.colors.textFaint,
+    fontWeight: 700,
+  },
+
   search: {
     ...ui.input,
     borderRadius: theme.radius.lg,
+    background: "rgba(255,255,255,.9)",
   },
 
-  categories: { display: "grid", gap: 14 },
+  categories: {
+    display: "grid",
+    gap: 16,
+  },
 
   categoryCard: {
     background: theme.colors.card,
     border: `1px solid ${theme.colors.border}`,
     borderRadius: theme.radius.lg,
-    padding: 14,
+    padding: 16,
     boxShadow: theme.shadow.card,
     backdropFilter: "blur(18px)",
   },
 
-  categoryHeader: { display: "grid", gap: 6, marginBottom: 12 },
+  categoryHeader: {
+    display: "grid",
+    gap: 6,
+    marginBottom: 14,
+  },
 
-  categoryName: { fontSize: 18, fontWeight: 950, color: theme.colors.text },
-  categoryTagline: { color: theme.colors.textDim, fontSize: 13 },
+  categoryName: {
+    fontSize: 20,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
+  },
 
-  exerciseList: { display: "grid", gap: 12 },
+  categoryTagline: {
+    color: theme.colors.textDim,
+    fontSize: 14,
+  },
+
+  exerciseList: {
+    display: "grid",
+    gap: 12,
+  },
 
   exerciseCard: {
     borderRadius: theme.radius.lg,
     border: `1px solid ${theme.colors.border}`,
-    background: "rgba(255,255,255,.03)",
+    background: "rgba(255,255,255,.62)",
     overflow: "hidden",
+    boxShadow: theme.shadow.soft,
   },
 
   exerciseHeaderBtn: {
@@ -309,7 +345,7 @@ const p = {
     justifyContent: "space-between",
     gap: 12,
     alignItems: "center",
-    padding: 14,
+    padding: 16,
     cursor: "pointer",
     background: "transparent",
     border: "none",
@@ -321,19 +357,32 @@ const p = {
     gap: 8,
   },
 
-  exerciseTitle: { fontSize: 16, fontWeight: 950, color: theme.colors.text },
-  exerciseSummary: { color: theme.colors.textDim, lineHeight: 1.5, fontSize: 13 },
+  exerciseTitle: {
+    fontSize: 17,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
+  },
 
-  badgesRow: { display: "flex", gap: 8, flexWrap: "wrap" },
+  exerciseSummary: {
+    color: theme.colors.textDim,
+    lineHeight: 1.5,
+    fontSize: 13,
+  },
+
+  badgesRow: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap",
+  },
 
   badge: {
     fontSize: 12,
-    padding: "5px 10px",
+    padding: "6px 10px",
     borderRadius: 999,
-    border: `1px solid ${theme.colors.borderSoft}`,
-    background: "rgba(255,255,255,.05)",
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.72)",
     color: theme.colors.textDim,
-    fontWeight: 900,
+    fontWeight: 700,
   },
 
   chev: {
@@ -342,20 +391,28 @@ const p = {
     display: "grid",
     placeItems: "center",
     borderRadius: theme.radius.md,
-    border: `1px solid ${theme.colors.borderSoft}`,
-    background: "rgba(255,255,255,.04)",
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.7)",
     transition: theme.motion.base,
     flexShrink: 0,
-    color: theme.colors.text,
+    color: theme.colors.textStrong,
+    boxShadow: theme.shadow.soft,
   },
 
   exerciseBody: {
-    padding: 14,
+    padding: 16,
     borderTop: `1px solid ${theme.colors.border}`,
-    background: "rgba(11,18,32,.35)",
+    background: "rgba(255,255,255,.45)",
   },
 
-  sectionLabel: { fontSize: 12, fontWeight: 950, color: theme.colors.textDim, marginBottom: 10 },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: theme.colors.textDim,
+    marginBottom: 10,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
 
   stepsGrid: {
     display: "grid",
@@ -368,62 +425,81 @@ const p = {
     gap: 12,
     padding: 12,
     borderRadius: theme.radius.lg,
-    border: `1px solid ${theme.colors.borderSoft}`,
-    background: "rgba(255,255,255,.04)",
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.78)",
+    boxShadow: theme.shadow.soft,
   },
 
   stepIndex: {
-    width: 30,
-    height: 30,
+    width: 32,
+    height: 32,
     borderRadius: theme.radius.md,
     display: "grid",
     placeItems: "center",
-    fontWeight: 950,
-    border: "1px solid rgba(0,245,212,.28)",
-    background: "rgba(0,245,212,.10)",
-    color: theme.colors.primary,
+    fontWeight: 800,
+    border: "1px solid rgba(242,178,79,.24)",
+    background: "rgba(242,178,79,.16)",
+    color: "#9a6107",
     flexShrink: 0,
-    boxShadow: "0 12px 26px rgba(0,245,212,.12)",
+    boxShadow: theme.shadow.soft,
   },
 
-  stepTitle: { fontWeight: 950, marginBottom: 4, color: theme.colors.text },
-  stepText: { color: theme.colors.textDim, lineHeight: 1.45, fontSize: 13 },
+  stepTitle: {
+    fontWeight: 800,
+    marginBottom: 4,
+    color: theme.colors.textStrong,
+  },
 
-  cuesWrap: { display: "flex", gap: 8, flexWrap: "wrap" },
+  stepText: {
+    color: theme.colors.textDim,
+    lineHeight: 1.45,
+    fontSize: 13,
+  },
+
+  cuesWrap: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap",
+  },
 
   cuePill: {
     padding: "8px 10px",
     borderRadius: 999,
-    border: `1px solid ${theme.colors.borderSoft}`,
-    background: "rgba(255,255,255,.04)",
-    color: theme.colors.textDim,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(122,92,207,.08)",
+    color: theme.colors.accent,
     fontSize: 13,
     lineHeight: 1.3,
+    fontWeight: 600,
   },
 
-  footerRow: { display: "flex", justifyContent: "flex-end", marginTop: 14 },
+  footerRow: {
+    display: "flex",
+    justifyContent: "flex-end",
+    marginTop: 14,
+  },
 
   cta: {
     display: "inline-flex",
     alignItems: "center",
     gap: 10,
     textDecoration: "none",
-    padding: "10px 12px",
-    borderRadius: theme.radius.lg,
-    background: "rgba(0,245,212,.12)",
-    border: "1px solid rgba(0,245,212,.28)",
-    color: theme.colors.primary,
-    fontWeight: 950,
+    padding: "10px 14px",
+    borderRadius: theme.radius.pill,
+    background: theme.gradients.primary,
+    border: "none",
+    color: "#4a2d00",
+    fontWeight: 800,
     transition: theme.motion.base,
-    boxShadow: "0 12px 26px rgba(0,245,212,.10)",
+    boxShadow: theme.shadow.button,
   },
 
   ctaDisabled: {
     padding: "10px 12px",
-    borderRadius: theme.radius.lg,
-    background: "rgba(255,255,255,.04)",
-    border: `1px solid ${theme.colors.borderSoft}`,
+    borderRadius: theme.radius.pill,
+    background: "rgba(255,255,255,.68)",
+    border: `1px solid ${theme.colors.border}`,
     color: theme.colors.textFaint,
-    fontWeight: 900,
+    fontWeight: 700,
   },
 };

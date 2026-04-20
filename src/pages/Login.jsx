@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { login } from "../services/authService";
 import AuthCard, { AuthUI } from "../components/AuthCard";
+import { theme } from "../theme/uiTheme";
 
 function EyeIcon({ off = false, size = 18 }) {
   if (off) {
@@ -14,6 +15,7 @@ function EyeIcon({ off = false, size = 18 }) {
       </svg>
     );
   }
+
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M2.5 12c1.8-2.3 5.3-6 9.5-6s7.7 3.7 9.5 6c-1.8 2.3-5.3 6-9.5 6s-7.7-3.7-9.5-6z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
@@ -54,7 +56,12 @@ export default function Login() {
   const eyeActive = showPassword || eyeHover;
 
   return (
-    <AuthCard title="Welcome Back 💪" subtitle="Train hard. Sign in fast.">
+    <AuthCard
+  title="Welcome Back 💪"
+  subtitle="Train hard. Sign in fast."
+  visualTitle="Train Like an Athlete"
+  visualText="Track workouts, stay consistent, and build a stronger version of yourself every day."
+>
       {error && <p style={AuthUI.error}>{error}</p>}
 
       <form onSubmit={submit} style={s.form}>
@@ -90,10 +97,14 @@ export default function Login() {
               onMouseLeave={() => setEyeHover(false)}
               style={{
                 ...s.eyeBtn,
-                color: eyeActive ? "#00f5d4" : "rgba(255,255,255,.55)",
-                boxShadow: eyeActive ? "0 0 0 4px rgba(0,245,212,.12)" : "none",
-                borderColor: eyeActive ? "rgba(0,245,212,.35)" : "rgba(255,255,255,.10)",
-                transform: eyeHover ? "translateY(-50%) scale(1.02)" : "translateY(-50%)",
+                color: eyeActive ? theme.colors.accent : theme.colors.textFaint,
+                boxShadow: eyeActive ? theme.shadow.glow : "none",
+                borderColor: eyeActive
+                  ? "rgba(122,92,207,0.22)"
+                  : theme.colors.border,
+                transform: eyeHover
+                  ? "translateY(-50%) scale(1.02)"
+                  : "translateY(-50%)",
               }}
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
@@ -102,14 +113,13 @@ export default function Login() {
           </div>
         </label>
 
-        
-
         <button
           style={{ ...AuthUI.button(loading), ...s.submitBtn }}
           disabled={loading}
         >
           {loading ? "Logging in..." : "Login"}
         </button>
+
         <div style={s.forgotWrap}>
           <Link to="/forgot-password" style={s.forgotLink}>
             Forgot password?
@@ -134,16 +144,19 @@ const s = {
     flexDirection: "column",
     alignItems: "center",
   },
+
   label: {
     width: "100%",
     display: "grid",
     gap: 8,
     marginBottom: 6,
   },
+
   labelText: {
     fontSize: 12,
-    color: "rgba(255,255,255,.65)",
+    color: theme.colors.textDim,
     letterSpacing: 0.4,
+    fontWeight: 600,
   },
 
   passwordWrap: {
@@ -157,15 +170,15 @@ const s = {
     position: "absolute",
     right: 12,
     top: "50%",
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
     display: "grid",
     placeItems: "center",
-    borderRadius: 10,
-    background: "rgba(15,23,42,.9)",
-    border: "1px solid rgba(255,255,255,.10)",
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.72)",
+    border: `1px solid ${theme.colors.border}`,
     cursor: "pointer",
-    transition: "all .15s ease",
+    transition: theme.motion.fast,
   },
 
   forgotWrap: {
@@ -173,11 +186,10 @@ const s = {
     display: "flex",
     justifyContent: "center",
     marginTop: 12,
-    
   },
 
   forgotLink: {
-    color: "#00f5d4",
+    color: theme.colors.accent,
     textDecoration: "none",
     fontSize: 14,
     fontWeight: 800,
@@ -191,7 +203,7 @@ const s = {
   },
 
   link: {
-    color: "#00f5d4",
+    color: theme.colors.accent,
     textDecoration: "none",
     fontWeight: 800,
   },

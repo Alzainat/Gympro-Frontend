@@ -160,311 +160,420 @@ export default function Home() {
   ];
 
   const s = {
-    page: {
-      ...UI.page, // ✅ same background as auth pages
-      color: theme.colors.text,
-      fontFamily:
-        'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"',
-    },
+  page: {
+    ...UI.page,
+    color: theme.colors.text,
+    fontFamily:
+      'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"',
+  },
 
-    container: {
-      width: `min(${theme.layout.contentMax}px, calc(100% - 40px))`,
-      margin: "0 auto",
-      padding: 22,
-      position: "relative",
-      zIndex: 1,
-      boxSizing: "border-box",
-    },
+  container: {
+    width: `min(${theme.layout.contentMax}px, calc(100% - 40px))`,
+    margin: "0 auto",
+    padding: 22,
+    position: "relative",
+    zIndex: 1,
+    boxSizing: "border-box",
+  },
 
-    topRow: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 12,
-      marginBottom: 14,
-    },
-    titleWrap: { display: "grid", gap: 4 },
-    pageTitle: { margin: 0, fontSize: 22, fontWeight: 980, letterSpacing: 0.2 },
-    pageSub: { margin: 0, color: theme.colors.textDim, fontSize: 13 },
+  topRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 16,
+  },
 
-    logoutBtn: {
-      cursor: "pointer",
-      padding: "10px 12px",
-      borderRadius: theme.radius.md,
-      border: `1px solid ${theme.colors.borderSoft}`,
-      background: "rgba(255,255,255,0.06)",
-      color: "rgba(255,255,255,0.90)",
-      fontWeight: 900,
-      fontSize: 13,
-      transition: theme.motion.base,
-      whiteSpace: "nowrap",
-    },
+  titleWrap: {
+    display: "grid",
+    gap: 4,
+  },
 
-    section: { padding: "18px 0" },
+  pageTitle: {
+    margin: 0,
+    fontSize: 24,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
+  },
 
-    // Ultra Premium Hero (full width)
-    heroFull: {
-      width: "100%",
-      borderRadius: theme.radius.lg,
-      border: `1px solid ${theme.colors.borderSoft}`,
-      overflow: "hidden",
-      position: "relative",
-      minHeight: 420,
-      boxShadow: theme.shadow.card,
-      backgroundImage:
-        `linear-gradient(135deg, rgba(5,7,13,0.86), rgba(5,7,13,0.52)),` +
-        `url("https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=2200&q=60")`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 34,
-      boxSizing: "border-box",
-      transformStyle: "preserve-3d",
-      transform: "perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))",
-    },
+  pageSub: {
+    margin: 0,
+    color: theme.colors.textDim,
+    fontSize: 13,
+  },
 
-    heroInner: {
-      width: "100%",
-      maxWidth: 860,
-      textAlign: "center",
-      position: "relative",
-      zIndex: 2,
-      transform: "translateZ(12px)",
-    },
+  logoutBtn: {
+    cursor: "pointer",
+    padding: "10px 14px",
+    borderRadius: theme.radius.pill,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.72)",
+    color: theme.colors.text,
+    fontWeight: 700,
+    fontSize: 13,
+    transition: theme.motion.base,
+    whiteSpace: "nowrap",
+    boxShadow: theme.shadow.soft,
+  },
 
-    pill: {
-      display: "inline-flex",
-      alignItems: "center",
-      gap: 10,
-      padding: "8px 12px",
-      borderRadius: 999,
-      border: `1px solid ${theme.colors.borderSoft}`,
-      background: "rgba(0,0,0,0.35)",
-      fontSize: 12,
-      color: "rgba(255,255,255,0.82)",
-      fontWeight: 800,
-    },
+  section: {
+    padding: "18px 0",
+  },
 
-    heroTitle: {
-      margin: "16px 0 0",
-      fontSize: 40,
-      lineHeight: 1.04,
-      letterSpacing: -0.7,
-      fontWeight: 990,
-    },
+  heroFull: {
+    width: "100%",
+    borderRadius: theme.radius.lg,
+    border: `1px solid ${theme.colors.border}`,
+    overflow: "hidden",
+    position: "relative",
+    minHeight: 420,
+    boxShadow: theme.shadow.card,
+    backgroundImage:
+      `linear-gradient(135deg, rgba(47,35,71,0.58), rgba(47,35,71,0.24)),` +
+      `url("https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=2200&q=60")`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 34,
+    boxSizing: "border-box",
+    transformStyle: "preserve-3d",
+    transform: "perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))",
+  },
 
-    heroText: {
-      margin: "12px auto 0",
-      color: theme.colors.textDim,
-      fontSize: 14,
-      lineHeight: 1.85,
-      maxWidth: 760,
-    },
+  heroInner: {
+    width: "100%",
+    maxWidth: 860,
+    textAlign: "center",
+    position: "relative",
+    zIndex: 2,
+    transform: "translateZ(12px)",
+  },
 
-    actions: { display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap", justifyContent: "center" },
+  pill: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "8px 12px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,.28)",
+    background: "rgba(255,255,255,.18)",
+    fontSize: 12,
+    color: "#fff",
+    fontWeight: 700,
+    backdropFilter: "blur(10px)",
+  },
 
-    btnPrimary: {
-      cursor: "pointer",
-      padding: "12px 14px",
-      borderRadius: theme.radius.md,
-      border: "none",
-      background: theme.gradients.primary,
-      color: "#061018",
-      fontWeight: 950,
-      fontSize: 13,
-      transition: theme.motion.base,
-      boxShadow: theme.shadow.glow,
-      minWidth: 160,
-    },
+  heroTitle: {
+    margin: "16px 0 0",
+    fontSize: 42,
+    lineHeight: 1.04,
+    letterSpacing: -0.7,
+    fontWeight: 800,
+    color: "#fff",
+  },
 
-    btnGhost: {
-      cursor: "pointer",
-      padding: "12px 14px",
-      borderRadius: theme.radius.md,
-      border: `1px solid ${theme.colors.borderSoft}`,
-      background: "rgba(255,255,255,0.06)",
-      color: "rgba(255,255,255,0.92)",
-      fontWeight: 900,
-      fontSize: 13,
-      transition: theme.motion.base,
-      minWidth: 160,
-    },
+  heroText: {
+    margin: "12px auto 0",
+    color: "rgba(255,255,255,.9)",
+    fontSize: 14,
+    lineHeight: 1.85,
+    maxWidth: 760,
+  },
 
-    // Stat chips
-    chips: {
-      marginTop: 18,
-      display: "flex",
-      gap: 10,
-      flexWrap: "wrap",
-      justifyContent: "center",
-    },
-    chip: {
-      padding: "10px 12px",
-      borderRadius: 999,
-      border: `1px solid ${theme.colors.borderSoft}`,
-      background: "rgba(0,0,0,0.28)",
-      display: "grid",
-      gap: 2,
-      minWidth: 160,
-      boxSizing: "border-box",
-    },
-    chipK: { fontSize: 12, fontWeight: 950, color: "rgba(255,255,255,0.92)" },
-    chipV: { fontSize: 12, fontWeight: 900, color: theme.colors.textDim },
+  actions: {
+    display: "flex",
+    gap: 10,
+    marginTop: 18,
+    flexWrap: "wrap",
+    justifyContent: "center",
+  },
 
-    // Sections
-    sectionTitle: { margin: 0, fontSize: 20, fontWeight: 950, letterSpacing: 0.2 },
-    sectionSub: {
-      margin: "8px 0 0",
-      color: theme.colors.textDim,
-      fontSize: 13,
-      lineHeight: 1.7,
-      maxWidth: 900,
-    },
+  btnPrimary: {
+    cursor: "pointer",
+    padding: "12px 16px",
+    borderRadius: theme.radius.pill,
+    border: "none",
+    background: theme.gradients.primary,
+    color: "#4a2d00",
+    fontWeight: 800,
+    fontSize: 13,
+    transition: theme.motion.base,
+    boxShadow: theme.shadow.button,
+    minWidth: 160,
+  },
 
-    // Cards
-    card: {
-      background: theme.colors.card,
-      border: `1px solid ${theme.colors.borderSoft}`,
-      borderRadius: theme.radius.lg,
-      padding: 16,
-      boxShadow: theme.shadow.card,
-      backdropFilter: "blur(20px)",
-      position: "relative",
-      overflow: "hidden",
-      boxSizing: "border-box",
-    },
+  btnGhost: {
+    cursor: "pointer",
+    padding: "12px 16px",
+    borderRadius: theme.radius.pill,
+    border: "1px solid rgba(255,255,255,.28)",
+    background: "rgba(255,255,255,.18)",
+    color: "#fff",
+    fontWeight: 700,
+    fontSize: 13,
+    transition: theme.motion.base,
+    minWidth: 160,
+    backdropFilter: "blur(10px)",
+  },
 
-    grid3: {
-      display: "grid",
-      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-      gap: 14,
-      marginTop: 18,
-    },
+  chips: {
+    marginTop: 18,
+    display: "flex",
+    gap: 10,
+    flexWrap: "wrap",
+    justifyContent: "center",
+  },
 
-    featureCard: {
-      background: theme.colors.card,
-      border: `1px solid ${theme.colors.borderSoft}`,
-      borderRadius: theme.radius.lg,
-      padding: 16,
-      boxShadow: theme.shadow.card,
-      transition: theme.motion.base,
-      position: "relative",
-      overflow: "hidden",
-      boxSizing: "border-box",
-    },
-    icon: { fontSize: 22, marginBottom: 10 },
-    fTitle: { margin: 0, fontSize: 14, fontWeight: 950, letterSpacing: 0.2 },
-    fDesc: {
-      margin: "8px 0 0",
-      color: theme.colors.textDim,
-      fontSize: 13,
-      lineHeight: 1.7,
-    },
+  chip: {
+    padding: "10px 12px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,.26)",
+    background: "rgba(255,255,255,.18)",
+    display: "grid",
+    gap: 2,
+    minWidth: 160,
+    boxSizing: "border-box",
+    backdropFilter: "blur(10px)",
+  },
 
-    // Testimonials
-    tGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-      gap: 14,
-      marginTop: 18,
-    },
-    quote: { margin: "10px 0 0", color: "rgba(255,255,255,0.78)", lineHeight: 1.7, fontSize: 13 },
-    person: {
-      marginTop: 12,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 10,
-    },
-    personLeft: { display: "flex", alignItems: "center", gap: 10 },
-    avatar: {
-      width: 36,
-      height: 36,
-      borderRadius: 12,
-      background: "rgba(255,255,255,0.08)",
-      border: `1px solid ${theme.colors.borderSoft}`,
-      display: "grid",
-      placeItems: "center",
-      fontWeight: 900,
-    },
-    role: { margin: 0, color: theme.colors.textDim, fontSize: 12 },
+  chipK: {
+    fontSize: 12,
+    fontWeight: 800,
+    color: "#fff",
+  },
 
-    // Contact
-    formWrap: {
-      marginTop: 18,
-      display: "grid",
-      gridTemplateColumns: "1.05fr 0.95fr",
-      gap: 14,
-      alignItems: "start",
-    },
-    label: { fontSize: 12, color: theme.colors.textDim, fontWeight: 800, marginBottom: 8 },
-    input: {
-      width: "100%",
-      padding: "12px 12px",
-      borderRadius: theme.radius.md,
-      border: `1px solid ${theme.colors.border}`,
-      background: theme.colors.surface,
-      color: theme.colors.text,
-      outline: "none",
-      fontSize: 13,
-      boxSizing: "border-box",
-      transition: theme.motion.base,
-    },
-    textarea: {
-      width: "100%",
-      padding: "12px 12px",
-      borderRadius: theme.radius.md,
-      border: `1px solid ${theme.colors.border}`,
-      background: theme.colors.surface,
-      color: theme.colors.text,
-      outline: "none",
-      fontSize: 13,
-      minHeight: 130,
-      resize: "vertical",
-      boxSizing: "border-box",
-      transition: theme.motion.base,
-    },
-    formRow: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 },
-    submit: {
-      cursor: "pointer",
-      padding: "12px 12px",
-      borderRadius: theme.radius.md,
-      border: "none",
-      background: theme.gradients.primary,
-      color: "#061018",
-      fontWeight: 950,
-      fontSize: 13,
-      width: "100%",
-      boxShadow: theme.shadow.glow,
-      transition: theme.motion.base,
-    },
+  chipV: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: "rgba(255,255,255,.88)",
+  },
 
-    helpList: { marginTop: 10, display: "grid", gap: 10 },
-    helpItem: {
-      border: `1px solid ${theme.colors.border}`,
-      background: "rgba(0,0,0,0.18)",
-      borderRadius: theme.radius.md,
-      padding: "10px 12px",
-      display: "flex",
-      gap: 10,
-      alignItems: "flex-start",
-    },
-    helpIcon: { fontSize: 16, marginTop: 1 },
-    helpText: { display: "grid", gap: 4 },
-    helpTitle: { margin: 0, fontWeight: 950, fontSize: 13 },
-    helpSub: { margin: 0, color: theme.colors.textDim, fontSize: 12, lineHeight: 1.6 },
+  sectionTitle: {
+    margin: 0,
+    fontSize: 22,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
+  },
 
-    footer: {
-      padding: "22px 0 34px",
-      color: theme.colors.textFaint,
-      fontSize: 12,
-      textAlign: "center",
-      borderTop: `1px solid ${theme.colors.border}`,
-      marginTop: 10,
-    },
-  };
+  sectionSub: {
+    margin: "8px 0 0",
+    color: theme.colors.textDim,
+    fontSize: 13,
+    lineHeight: 1.7,
+    maxWidth: 900,
+  },
+
+  card: {
+    background: theme.colors.card,
+    border: `1px solid ${theme.colors.border}`,
+    borderRadius: theme.radius.lg,
+    padding: 16,
+    boxShadow: theme.shadow.card,
+    backdropFilter: "blur(20px)",
+    position: "relative",
+    overflow: "hidden",
+    boxSizing: "border-box",
+  },
+
+  grid3: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gap: 14,
+    marginTop: 18,
+  },
+
+  featureCard: {
+    background: theme.colors.card,
+    border: `1px solid ${theme.colors.border}`,
+    borderRadius: theme.radius.lg,
+    padding: 16,
+    boxShadow: theme.shadow.soft,
+    transition: theme.motion.base,
+    position: "relative",
+    overflow: "hidden",
+    boxSizing: "border-box",
+  },
+
+  icon: {
+    fontSize: 22,
+    marginBottom: 10,
+  },
+
+  fTitle: {
+    margin: 0,
+    fontSize: 15,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
+  },
+
+  fDesc: {
+    margin: "8px 0 0",
+    color: theme.colors.textDim,
+    fontSize: 13,
+    lineHeight: 1.7,
+  },
+
+  tGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gap: 14,
+    marginTop: 18,
+  },
+
+  quote: {
+    margin: "10px 0 0",
+    color: theme.colors.textDim,
+    lineHeight: 1.7,
+    fontSize: 13,
+  },
+
+  person: {
+    marginTop: 12,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+
+  personLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    background: "linear-gradient(135deg, rgba(122,92,207,.16), rgba(242,178,79,.18))",
+    border: `1px solid ${theme.colors.border}`,
+    display: "grid",
+    placeItems: "center",
+    fontWeight: 700,
+    color: theme.colors.textStrong,
+  },
+
+  role: {
+    margin: 0,
+    color: theme.colors.textDim,
+    fontSize: 12,
+  },
+
+  formWrap: {
+    marginTop: 18,
+    display: "grid",
+    gridTemplateColumns: "1.05fr 0.95fr",
+    gap: 14,
+    alignItems: "start",
+  },
+
+  label: {
+    fontSize: 12,
+    color: theme.colors.textDim,
+    fontWeight: 700,
+    marginBottom: 8,
+  },
+
+  input: {
+    width: "100%",
+    padding: "12px 12px",
+    borderRadius: theme.radius.md,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.88)",
+    color: theme.colors.text,
+    outline: "none",
+    fontSize: 13,
+    boxSizing: "border-box",
+    transition: theme.motion.base,
+  },
+
+  textarea: {
+    width: "100%",
+    padding: "12px 12px",
+    borderRadius: theme.radius.md,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.88)",
+    color: theme.colors.text,
+    outline: "none",
+    fontSize: 13,
+    minHeight: 130,
+    resize: "vertical",
+    boxSizing: "border-box",
+    transition: theme.motion.base,
+  },
+
+  formRow: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 10,
+  },
+
+  submit: {
+    cursor: "pointer",
+    padding: "12px 12px",
+    borderRadius: theme.radius.pill,
+    border: "none",
+    background: theme.gradients.primary,
+    color: "#4a2d00",
+    fontWeight: 800,
+    fontSize: 13,
+    width: "100%",
+    boxShadow: theme.shadow.button,
+    transition: theme.motion.base,
+  },
+
+  helpList: {
+    marginTop: 10,
+    display: "grid",
+    gap: 10,
+  },
+
+  helpItem: {
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.58)",
+    borderRadius: theme.radius.md,
+    padding: "10px 12px",
+    display: "flex",
+    gap: 10,
+    alignItems: "flex-start",
+    boxShadow: theme.shadow.soft,
+  },
+
+  helpIcon: {
+    fontSize: 16,
+    marginTop: 1,
+  },
+
+  helpText: {
+    display: "grid",
+    gap: 4,
+  },
+
+  helpTitle: {
+    margin: 0,
+    fontWeight: 800,
+    fontSize: 13,
+    color: theme.colors.textStrong,
+  },
+
+  helpSub: {
+    margin: 0,
+    color: theme.colors.textDim,
+    fontSize: 12,
+    lineHeight: 1.6,
+  },
+
+  footer: {
+    padding: "22px 0 34px",
+    color: theme.colors.textFaint,
+    fontSize: 12,
+    textAlign: "center",
+    borderTop: `1px solid ${theme.colors.border}`,
+    marginTop: 10,
+  },
+};
 
   return (
     <div style={s.page}>
@@ -474,56 +583,55 @@ export default function Home() {
       <div style={UI.glowBottom} />
 
       <style>{`
-        [data-reveal]{ opacity: 0; transform: translateY(16px); transition: all 700ms ease; }
-        .reveal-in{ opacity: 1 !important; transform: translateY(0) !important; }
+  [data-reveal]{ opacity: 0; transform: translateY(16px); transition: all 700ms ease; }
+  .reveal-in{ opacity: 1 !important; transform: translateY(0) !important; }
 
-        .hoverUp:hover{ transform: translateY(-3px); border-color: rgba(0,245,212,.28) !important; }
-        .btnHover:hover{ transform: translateY(-1px); filter: brightness(1.05); }
-        .focusable:focus{ border-color: rgba(0,245,212,.40) !important; box-shadow: 0 0 0 3px rgba(0,245,212,.12); }
+  .hoverUp:hover{ transform: translateY(-3px); border-color: rgba(122,92,207,.20) !important; }
+  .btnHover:hover{ transform: translateY(-1px); filter: brightness(1.03); }
+  .focusable:focus{ border-color: rgba(122,92,207,.30) !important; box-shadow: 0 0 0 3px rgba(122,92,207,.10); }
 
-        /* Ultra premium glow border + floating gradients */
-        .heroGlow::before{
-          content:"";
-          position:absolute;
-          inset:-2px;
-          border-radius: ${theme.radius.lg}px;
-          background: conic-gradient(
-            from 180deg at 50% 50%,
-            rgba(0,245,212,.18),
-            rgba(124,58,237,.18),
-            rgba(0,245,212,.18)
-          );
-          filter: blur(10px);
-          opacity: .65;
-          z-index: 0;
-          animation: spinGlow 10s linear infinite;
-          pointer-events:none;
-        }
+  .heroGlow::before{
+    content:"";
+    position:absolute;
+    inset:-2px;
+    border-radius: ${theme.radius.lg}px;
+    background: conic-gradient(
+      from 180deg at 50% 50%,
+      rgba(242,178,79,.16),
+      rgba(122,92,207,.16),
+      rgba(242,178,79,.16)
+    );
+    filter: blur(10px);
+    opacity: .65;
+    z-index: 0;
+    animation: spinGlow 10s linear infinite;
+    pointer-events:none;
+  }
 
-        .heroGlow::after{
-          content:"";
-          position:absolute;
-          inset:0;
-          border-radius: ${theme.radius.lg}px;
-          background:
-            radial-gradient(900px 420px at var(--mx, 50%) var(--my, 20%), rgba(0,245,212,.16), transparent 55%),
-            radial-gradient(700px 420px at 15% 85%, rgba(124,58,237,.12), transparent 55%),
-            radial-gradient(900px 600px at 90% 20%, rgba(255,255,255,.06), transparent 60%);
-          z-index: 1;
-          pointer-events:none;
-        }
+  .heroGlow::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius: ${theme.radius.lg}px;
+    background:
+      radial-gradient(900px 420px at var(--mx, 50%) var(--my, 20%), rgba(242,178,79,.18), transparent 55%),
+      radial-gradient(700px 420px at 15% 85%, rgba(122,92,207,.14), transparent 55%),
+      radial-gradient(900px 600px at 90% 20%, rgba(255,255,255,.14), transparent 60%);
+    z-index: 1;
+    pointer-events:none;
+  }
 
-        @keyframes spinGlow {
-          0%{ transform: rotate(0deg); }
-          100%{ transform: rotate(360deg); }
-        }
+  @keyframes spinGlow {
+    0%{ transform: rotate(0deg); }
+    100%{ transform: rotate(360deg); }
+  }
 
-        @media (max-width: 980px){
-          .grid3{ grid-template-columns: 1fr !important; }
-          .tGrid3{ grid-template-columns: 1fr !important; }
-          .formGrid{ grid-template-columns: 1fr !important; }
-        }
-      `}</style>
+  @media (max-width: 980px){
+    .grid3{ grid-template-columns: 1fr !important; }
+    .tGrid3{ grid-template-columns: 1fr !important; }
+    .formGrid{ grid-template-columns: 1fr !important; }
+  }
+`}</style>
 
       <div style={s.container}>
         {/* Top row (title + logout) */}

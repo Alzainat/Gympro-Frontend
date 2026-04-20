@@ -191,7 +191,6 @@ export default function Equipment() {
 }
 
 const s = {
-  // ✅ نفس جو الثيم + خلفية gradients
   pageWrap: {
     ...ui.page,
   },
@@ -211,48 +210,74 @@ const s = {
     alignItems: "flex-end",
     gap: 16,
     flexWrap: "wrap",
-    marginBottom: 14,
+    marginBottom: 18,
   },
 
   kicker: {
     display: "inline-flex",
-    padding: "6px 12px",
+    padding: "7px 14px",
     borderRadius: 999,
-    background: "rgba(0,245,212,.10)",
-    border: "1px solid rgba(0,245,212,.28)",
-    color: theme.colors.primary,
-    fontWeight: 950,
+    background: "rgba(122,92,207,.10)",
+    border: "1px solid rgba(122,92,207,.18)",
+    color: theme.colors.accent,
+    fontWeight: 800,
     letterSpacing: 0.2,
   },
 
-  title: { margin: "12px 0 6px", fontSize: 28, fontWeight: 950 },
-  sub: { margin: 0, color: theme.colors.textDim, lineHeight: 1.5 },
+  title: {
+    margin: "12px 0 6px",
+    fontSize: 30,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
+  },
 
-  searchWrap: { width: 340, maxWidth: "100%", display: "grid", gap: 8 },
-  searchLabel: { fontSize: 12, color: theme.colors.textDim, fontWeight: 900 },
+  sub: {
+    margin: 0,
+    color: theme.colors.textDim,
+    lineHeight: 1.5,
+  },
+
+  searchWrap: {
+    width: 340,
+    maxWidth: "100%",
+    display: "grid",
+    gap: 8,
+  },
+
+  searchLabel: {
+    fontSize: 12,
+    color: theme.colors.textDim,
+    fontWeight: 700,
+  },
 
   search: {
     ...ui.input,
-    background: theme.colors.bg1,
+    background: "rgba(255,255,255,0.9)",
   },
 
-  filters: { display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 },
+  filters: {
+    display: "flex",
+    gap: 10,
+    flexWrap: "wrap",
+    marginBottom: 12,
+  },
 
   filterBtn: {
-    padding: "10px 12px",
+    padding: "10px 14px",
     borderRadius: 999,
     border: `1px solid ${theme.colors.border}`,
-    background: theme.colors.surface,
+    background: "rgba(255,255,255,0.72)",
     color: theme.colors.text,
-    fontWeight: 900,
+    fontWeight: 700,
     cursor: "pointer",
     transition: theme.motion.fast,
+    boxShadow: theme.shadow.soft,
   },
 
   filterBtnActive: {
-    borderColor: "rgba(0,245,212,.35)",
-    background: "rgba(0,245,212,.12)",
-    color: theme.colors.primary,
+    borderColor: "rgba(122,92,207,.20)",
+    background: "rgba(122,92,207,.10)",
+    color: theme.colors.accent,
     boxShadow: theme.shadow.glow,
   },
 
@@ -261,23 +286,26 @@ const s = {
     justifyContent: "space-between",
     gap: 12,
     alignItems: "center",
-    marginBottom: 14,
+    marginBottom: 16,
   },
 
-  metaText: { color: theme.colors.textDim, fontSize: 13 },
+  metaText: {
+    color: theme.colors.textDim,
+    fontSize: 13,
+  },
 
   clearBtn: {
     padding: "10px 12px",
-    borderRadius: theme.radius.md,
+    borderRadius: theme.radius.pill,
     border: `1px solid ${theme.colors.border}`,
-    background: theme.colors.surface,
+    background: "rgba(255,255,255,0.72)",
     color: theme.colors.text,
-    fontWeight: 900,
+    fontWeight: 700,
     cursor: "pointer",
     transition: theme.motion.fast,
+    boxShadow: theme.shadow.soft,
   },
 
-  // ✅ الأهم: item واحد ما يصير full width
   grid: {
     display: "grid",
     gap: 18,
@@ -295,7 +323,7 @@ const s = {
 
   card: {
     width: "100%",
-    maxWidth: 340, // ✅ يثبت حجم الكارد (حتى لو عنصر واحد)
+    maxWidth: 340,
     borderRadius: theme.radius.lg,
     overflow: "hidden",
     border: `1px solid ${theme.colors.border}`,
@@ -303,10 +331,13 @@ const s = {
     backdropFilter: "blur(16px)",
     animation: "fadeUp .35s ease both",
     transition: theme.motion.base,
-    boxShadow: "0 14px 40px rgba(0,0,0,.35)",
+    boxShadow: theme.shadow.card,
   },
 
-  imageWrap: { position: "relative", overflow: "hidden" },
+  imageWrap: {
+    position: "relative",
+    overflow: "hidden",
+  },
 
   img: {
     width: "100%",
@@ -320,14 +351,19 @@ const s = {
   overlay: {
     position: "absolute",
     inset: 0,
-    background: "rgba(0,0,0,.45)",
+    background: "linear-gradient(180deg, rgba(47,35,71,.08), rgba(47,35,71,.36))",
     opacity: 0,
     display: "grid",
     placeItems: "center",
     transition: "opacity .25s ease",
   },
 
-  overlayText: { color: "#fff", fontWeight: 950, fontSize: 18, letterSpacing: 0.8 },
+  overlayText: {
+    color: "#fff",
+    fontWeight: 800,
+    fontSize: 18,
+    letterSpacing: 0.4,
+  },
 
   cardBody: {
     padding: 14,
@@ -338,19 +374,19 @@ const s = {
   },
 
   machineName: {
-  fontWeight: 950,
-  fontSize: 16,
-  color: theme.colors.primary, // ✅ لون neon
-},
+    fontWeight: 800,
+    fontSize: 16,
+    color: theme.colors.textStrong,
+  },
 
   badge: {
     padding: "6px 10px",
     borderRadius: 999,
     fontSize: 12,
-    fontWeight: 900,
-    background: "rgba(255,255,255,.06)",
-    border: `1px solid ${theme.colors.borderSoft}`,
-    color: theme.colors.text,
+    fontWeight: 700,
+    background: "rgba(242,178,79,.14)",
+    border: "1px solid rgba(242,178,79,.20)",
+    color: "#9a6107",
   },
 
   empty: {
@@ -359,28 +395,38 @@ const s = {
     borderRadius: theme.radius.lg,
     border: `1px solid ${theme.colors.borderSoft}`,
     background: theme.colors.surface,
+    boxShadow: theme.shadow.soft,
   },
 
-  emptyTitle: { fontWeight: 950, fontSize: 16, marginBottom: 6 },
-  emptyText: { color: theme.colors.textDim },
+  emptyTitle: {
+    fontWeight: 800,
+    fontSize: 16,
+    marginBottom: 6,
+    color: theme.colors.textStrong,
+  },
+
+  emptyText: {
+    color: theme.colors.textDim,
+  },
 
   backdrop: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,.7)",
+    background: "rgba(47,35,71,.28)",
     display: "grid",
     placeItems: "center",
     zIndex: 1000,
     padding: 16,
+    backdropFilter: "blur(8px)",
   },
 
   modal: {
     width: "min(720px, 92vw)",
-    background: theme.colors.card,
+    background: "rgba(255,255,255,.82)",
     backdropFilter: "blur(18px)",
     borderRadius: theme.radius.lg,
     padding: 16,
-    border: `1px solid ${theme.colors.borderSoft}`,
+    border: `1px solid ${theme.colors.border}`,
     boxShadow: theme.shadow.card,
     color: theme.colors.text,
   },
@@ -393,19 +439,29 @@ const s = {
     marginBottom: 10,
   },
 
-  modalTitle: { fontWeight: 950, fontSize: 18 },
-  modalSub: { color: theme.colors.textDim, fontSize: 13, marginTop: 3 },
+  modalTitle: {
+    fontWeight: 800,
+    fontSize: 18,
+    color: theme.colors.textStrong,
+  },
+
+  modalSub: {
+    color: theme.colors.textDim,
+    fontSize: 13,
+    marginTop: 3,
+  },
 
   closeBtn: {
     width: 40,
     height: 40,
     borderRadius: theme.radius.md,
     border: `1px solid ${theme.colors.border}`,
-    background: theme.colors.surface,
+    background: "rgba(255,255,255,.72)",
     color: theme.colors.text,
-    fontWeight: 950,
+    fontWeight: 800,
     cursor: "pointer",
     transition: theme.motion.fast,
+    boxShadow: theme.shadow.soft,
   },
 
   modalImg: {
@@ -421,18 +477,17 @@ const css = `
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* Hover card */
   button:hover > div {
     transform: translateY(-2px);
-    border-color: rgba(0,245,212,.22);
-    box-shadow: 0 18px 60px rgba(0,0,0,.45), 0 15px 35px rgba(0,245,212,.12);
+    border-color: rgba(122,92,207,.16);
+    box-shadow: 0 22px 50px rgba(98,78,133,.12);
   }
 
   button:hover img { transform: scale(1.04); }
   button:hover div[style*="opacity: 0"] { opacity: 1; }
 
   button:focus-visible {
-    outline: 2px solid rgba(0,245,212,.45);
+    outline: 2px solid rgba(122,92,207,.28);
     outline-offset: 6px;
     border-radius: 18px;
   }
