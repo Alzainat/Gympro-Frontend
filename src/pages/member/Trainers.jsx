@@ -30,10 +30,6 @@ export default function Trainers() {
         const trainers = unwrap(trainersRes.data) ?? [];
         const user = userRes.data;
 
-        console.log("USER RAW RESPONSE:", userRes.data);
-    console.log("USER AFTER UNWRAP:", user);
-    console.log("TRAINER ID FROM USER:", user?.profile?.trainer_id);
-
         setItems(trainers);
         setMyTrainerId(
           user?.profile?.trainer_id ??
@@ -77,11 +73,7 @@ export default function Trainers() {
       const res = await api.post(`/member/trainers/${trainerId}/subscribe`);
       const data = unwrap(res.data) ?? res.data;
 
-      setMyTrainerId(
-        data?.trainer_id ??
-          data?.trainerId ??
-          trainerId
-      );
+      setMyTrainerId(data?.trainer_id ?? data?.trainerId ?? trainerId);
     } catch (e) {
       setErr(e?.response?.data?.message || "Failed to subscribe to trainer.");
     } finally {
@@ -152,7 +144,26 @@ export default function Trainers() {
               return (
                 <div key={trainerId} style={page.card}>
                   <div style={page.cardTop}>
-                    <div style={page.name}>{t.full_name}</div>
+                    <div style={page.trainerInfo}>
+                      <div style={page.avatar}>
+                        {t.avatar_url ? (
+                          <img
+                            src={t.avatar_url}
+                            alt={t.full_name || "Trainer"}
+                            style={page.avatarImg}
+                          />
+                        ) : (
+                          <span style={page.avatarFallback}>
+                            {t.full_name?.charAt(0)?.toUpperCase() || "T"}
+                          </span>
+                        )}
+                      </div>
+
+                      <div>
+                        <div style={page.name}>{t.full_name}</div>
+                        <div style={page.smallText}>Trainer</div>
+                      </div>
+                    </div>
 
                     <div style={page.badge}>
                       <span style={page.badgeDot} />
@@ -170,9 +181,9 @@ export default function Trainers() {
                     </div>
 
                     <div style={page.metaItem}>
-                      <div style={page.metaLabel}>Experience</div>
+                      <div style={page.metaLabel}>Status</div>
                       <div style={page.metaValue}>
-                        {t.experience_years ?? "-"}
+                        {t.is_available ? "Available" : "Unavailable"}
                       </div>
                     </div>
                   </div>
@@ -287,7 +298,40 @@ const page = {
     justifyContent: "space-between",
     alignItems: "center",
     gap: 10,
-    marginBottom: 10,
+    marginBottom: 14,
+  },
+
+  trainerInfo: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    minWidth: 0,
+  },
+
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: "50%",
+    overflow: "hidden",
+    flex: "0 0 auto",
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.72)",
+    display: "grid",
+    placeItems: "center",
+    boxShadow: theme.shadow.soft,
+  },
+
+  avatarImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
+  },
+
+  avatarFallback: {
+    fontWeight: 900,
+    fontSize: 20,
+    color: theme.colors.textStrong,
   },
 
   name: {
@@ -295,6 +339,13 @@ const page = {
     fontSize: 17,
     color: theme.colors.textStrong,
     letterSpacing: 0.2,
+  },
+
+  smallText: {
+    marginTop: 3,
+    color: theme.colors.textFaint,
+    fontSize: 12,
+    fontWeight: 700,
   },
 
   badge: {

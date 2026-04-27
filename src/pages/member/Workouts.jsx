@@ -104,96 +104,48 @@ const roundLabel = (n) => {
   return `Round ${n}`;
 };
 
-function WorkoutLogTable({ exercise, onEdit }) {
+function ExerciseLogSummary({ exercise }) {
   const rows = Array.isArray(exercise?.member_log?.sets) ? exercise.member_log.sets : [];
+  const completed = rows.filter((row) => row?.done).length;
+  const lastWeight = [...rows].reverse().find((row) => row?.weight !== "" && row?.weight != null)?.weight;
+  const lastReps = [...rows].reverse().find((row) => row?.reps !== "" && row?.reps != null)?.reps;
 
-  const displayRows =
-    rows.length > 0
-      ? rows
-      : Array.from({ length: Number(exercise?.sets || 3) || 3 }).map((_, i) => ({
-          round: i + 1,
-          weight: "",
-          reps: "",
-          done: false,
-        }));
-
-  const nextSetNumber = displayRows.length + 1;
+  if (!rows.length && !exercise?.member_log?.note) {
+    return (
+      <div style={logSummary.emptyWrap}>
+        <div style={logSummary.emptyTitle}>No log yet</div>
+        <div style={logSummary.emptyText}>Tap the button below to add your workout log.</div>
+      </div>
+    );
+  }
 
   return (
-    <div style={logTable.wrap}>
-      <div style={logTable.topBar}>
-        <div style={logTable.logPill}>Log</div>
-        <button type="button" style={logTable.editBtn} onClick={onEdit}>
-          {rows.length ? "Edit" : "Add"}
-        </button>
-      </div>
-
-      <div style={logTable.exerciseTitle}>{exercise?.exercise_name || "Exercise"}</div>
-      <div style={logTable.exerciseSub}>
-        {exercise?.target_muscle || "Target muscle"}{" "}
-        {exercise?.equipment ? `- ${exercise.equipment}` : ""}
-      </div>
-
-      <div style={logTable.tableShell}>
-        <div style={logTable.headerRow}>
-          <div style={{ ...logTable.headerCell, ...logTable.setCol }}>Set</div>
-          <div style={{ ...logTable.headerCell, ...logTable.weightCol }}>Weight</div>
-          <div style={{ ...logTable.headerCell, ...logTable.repsCol }}>Reps</div>
-          <div style={{ ...logTable.headerCell, ...logTable.checkCol }} />
+    <div style={logSummary.wrap}>
+      <div style={logSummary.grid}>
+        <div style={logSummary.box}>
+          <span style={logSummary.label}>Logged Sets</span>
+          <span style={logSummary.value}>{rows.length || 0}</span>
         </div>
 
-        {displayRows.map((row, index) => (
-          <div key={`${row.round}-${index}`} style={logTable.row}>
-            <div style={{ ...logTable.cell, ...logTable.setCol }}>
-              <span style={logTable.setIndex}>{row.round}</span>
-              <span style={logTable.setLabel}>{roundLabel(row.round)}</span>
-            </div>
+        <div style={logSummary.box}>
+          <span style={logSummary.label}>Completed</span>
+          <span style={logSummary.value}>{completed}</span>
+        </div>
 
-            <div style={{ ...logTable.cell, ...logTable.weightCol }}>
-              <div style={logTable.metricPill}>
-                {row.weight !== "" && row.weight != null ? `${row.weight} kg` : "-- kg"}
-              </div>
-            </div>
+        <div style={logSummary.box}>
+          <span style={logSummary.label}>Last Weight</span>
+          <span style={logSummary.value}>{lastWeight != null ? `${lastWeight} kg` : "-"}</span>
+        </div>
 
-            <div style={{ ...logTable.cell, ...logTable.repsCol }}>
-              <div style={logTable.metricPill}>
-                {row.reps !== "" && row.reps != null ? row.reps : "--"}
-              </div>
-            </div>
-
-            <div style={{ ...logTable.cell, ...logTable.checkCol }}>
-              <div style={row.done ? logTable.checkDone : logTable.checkIdle}>
-                {row.done ? "✓" : ""}
-              </div>
-            </div>
-          </div>
-        ))}
-
-        <div style={logTable.addRow}>
-          <div style={{ ...logTable.cell, ...logTable.setCol }}>
-            <span style={logTable.nextSetIcon}>＋</span>
-            <span style={logTable.nextSetLabel}>Next Set ({nextSetNumber})</span>
-          </div>
-
-          <div style={{ ...logTable.cell, ...logTable.weightCol }}>
-            <div style={logTable.metricGhost}>-- kg</div>
-          </div>
-
-          <div style={{ ...logTable.cell, ...logTable.repsCol }}>
-            <div style={logTable.metricGhost}>--</div>
-          </div>
-
-          <div style={{ ...logTable.cell, ...logTable.checkCol }}>
-            <button type="button" style={logTable.addBtn} onClick={onEdit}>
-              {rows.length ? "Update Log" : "Add Set"}
-            </button>
-          </div>
+        <div style={logSummary.box}>
+          <span style={logSummary.label}>Last Reps</span>
+          <span style={logSummary.value}>{lastReps != null ? lastReps : "-"}</span>
         </div>
       </div>
 
       {exercise?.member_log?.note ? (
-        <div style={logTable.noteBox}>
-          <span style={logTable.noteLabel}>Note:</span> {exercise.member_log.note}
+        <div style={logSummary.noteBox}>
+          <span style={logSummary.noteLabel}>Last Note:</span> {exercise.member_log.note}
         </div>
       ) : null}
     </div>
@@ -311,18 +263,14 @@ export default function Workouts() {
   const updateSetRow = (index, key, value) => {
     setForm((prev) => ({
       ...prev,
-      sets: prev.sets.map((row, i) =>
-        i === index ? { ...row, [key]: value } : row
-      ),
+      sets: prev.sets.map((row, i) => (i === index ? { ...row, [key]: value } : row)),
     }));
   };
 
   const toggleSetDone = (index) => {
     setForm((prev) => ({
       ...prev,
-      sets: prev.sets.map((row, i) =>
-        i === index ? { ...row, done: !row.done } : row
-      ),
+      sets: prev.sets.map((row, i) => (i === index ? { ...row, done: !row.done } : row)),
     }));
   };
 
@@ -351,10 +299,8 @@ export default function Workouts() {
       const cleanedSets = form.sets
         .map((row, i) => ({
           round: Number(row.round || i + 1),
-          weight:
-            row.weight === "" || row.weight == null ? null : Number(row.weight),
-          reps:
-            row.reps === "" || row.reps == null ? null : Number(row.reps),
+          weight: row.weight === "" || row.weight == null ? null : Number(row.weight),
+          reps: row.reps === "" || row.reps == null ? null : Number(row.reps),
           done: !!row.done,
         }))
         .filter((row) => row.weight !== null || row.reps !== null || row.done);
@@ -465,14 +411,15 @@ export default function Workouts() {
                         <div style={exerciseList.wrap}>
                           {routine.exercises.map((x, idx) => {
                             const imageSrc = getImageUrl(x.image_url);
+                            const hasLog = Array.isArray(x?.member_log?.sets) && x.member_log.sets.length > 0;
 
                             return (
                               <div
                                 key={`${x.routine_exercise_id}-${x.exercise_id}-${idx}`}
                                 style={exerciseCard.wrap}
                               >
-                                <div style={exerciseCard.visualCol}>
-                                  <div style={exerciseCard.left}>
+                                <div style={exerciseCard.topSection}>
+                                  <div style={exerciseCard.mediaCol}>
                                     {imageSrc ? (
                                       <img
                                         src={imageSrc}
@@ -487,60 +434,62 @@ export default function Workouts() {
                                     )}
                                   </div>
 
-                                  <div style={exerciseCard.topRow}>
-                                    <div style={exerciseCard.titleCol}>
-                                      <h4 style={exerciseCard.exerciseName}>
-                                        {x.exercise_name ?? "-"}
-                                      </h4>
+                                  <div style={exerciseCard.contentCol}>
+                                    <div style={exerciseCard.topRow}>
+                                      <div style={exerciseCard.titleCol}>
+                                        <h4 style={exerciseCard.exerciseName}>{x.exercise_name ?? "-"}</h4>
 
-                                      <div style={metaRow.wrap}>
-                                        <span style={metaRow.target}>
-                                          {x.target_muscle ?? "No target"}
-                                        </span>
+                                        <div style={metaRow.wrap}>
+                                          <span style={metaRow.target}>{x.target_muscle ?? "No target"}</span>
 
-                                        <span style={difficulty.tag(x.difficulty)}>
-                                          {x.difficulty ?? "-"}
-                                        </span>
+                                          <span style={difficulty.tag(x.difficulty)}>
+                                            {x.difficulty ?? "-"}
+                                          </span>
 
-                                        {x.equipment ? (
-                                          <span style={metaRow.target}>{x.equipment}</span>
-                                        ) : null}
+                                          {x.equipment ? (
+                                            <span style={metaRow.target}>{x.equipment}</span>
+                                          ) : null}
+                                        </div>
                                       </div>
                                     </div>
+
+                                    <div style={stats.wrap}>
+                                      <div style={stats.item}>
+                                        <span style={stats.label}>Sets</span>
+                                        <span style={stats.value}>{x.sets ?? "-"}</span>
+                                      </div>
+
+                                      <div style={stats.item}>
+                                        <span style={stats.label}>Reps</span>
+                                        <span style={stats.value}>{x.reps ?? "-"}</span>
+                                      </div>
+
+                                      <div style={stats.item}>
+                                        <span style={stats.label}>Rest</span>
+                                        <span style={stats.value}>
+                                          {x.rest_seconds ? `${x.rest_seconds}s` : "-"}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {x.notes ? (
+                                      <div style={exerciseCard.coachNote}>
+                                        <span style={exerciseCard.coachNoteLabel}>Coach Note:</span> {x.notes}
+                                      </div>
+                                    ) : null}
                                   </div>
-
-                                  <div style={stats.wrap}>
-                                    <div style={stats.item}>
-                                      <span style={stats.label}>Sets</span>
-                                      <span style={stats.value}>{x.sets ?? "-"}</span>
-                                    </div>
-
-                                    <div style={stats.item}>
-                                      <span style={stats.label}>Reps</span>
-                                      <span style={stats.value}>{x.reps ?? "-"}</span>
-                                    </div>
-
-                                    <div style={stats.item}>
-                                      <span style={stats.label}>Rest</span>
-                                      <span style={stats.value}>
-                                        {x.rest_seconds ? `${x.rest_seconds}s` : "-"}
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  {x.notes ? (
-                                    <div style={exerciseCard.coachNote}>
-                                      <span style={exerciseCard.coachNoteLabel}>Coach Note:</span>{" "}
-                                      {x.notes}
-                                    </div>
-                                  ) : null}
                                 </div>
 
-                                <div style={exerciseCard.logCol}>
-                                  <WorkoutLogTable
-                                    exercise={x}
-                                    onEdit={() => openLogModal(routine, x)}
-                                  />
+                                <ExerciseLogSummary exercise={x} />
+
+                                <div style={exerciseCard.actionsRow}>
+                                  <button
+                                    type="button"
+                                    style={exerciseCard.logBtn}
+                                    onClick={() => openLogModal(routine, x)}
+                                  >
+                                    {hasLog ? "Update Log" : "Log Workout"}
+                                  </button>
                                 </div>
                               </div>
                             );
@@ -573,73 +522,81 @@ export default function Workouts() {
               </div>
             </div>
 
-            <div style={modal.tableWrap}>
-              <div style={modal.tableHead}>
-                <div style={modal.headCellSet}>Set</div>
-                <div style={modal.headCell}>Weight</div>
-                <div style={modal.headCell}>Reps</div>
-                <div style={modal.headCellIcon} />
+            <div style={modal.metaCards}>
+              <div style={modal.metaCard}>
+                <span style={modal.metaLabel}>Target</span>
+                <span style={modal.metaValue}>{logModal.exercise?.target_muscle || "-"}</span>
               </div>
+              <div style={modal.metaCard}>
+                <span style={modal.metaLabel}>Planned Sets</span>
+                <span style={modal.metaValue}>{logModal.exercise?.sets || "-"}</span>
+              </div>
+              <div style={modal.metaCard}>
+                <span style={modal.metaLabel}>Planned Reps</span>
+                <span style={modal.metaValue}>{logModal.exercise?.reps || "-"}</span>
+              </div>
+              <div style={modal.metaCard}>
+                <span style={modal.metaLabel}>Rest</span>
+                <span style={modal.metaValue}>
+                  {logModal.exercise?.rest_seconds ? `${logModal.exercise.rest_seconds}s` : "-"}
+                </span>
+              </div>
+            </div>
 
-              <div style={modal.tableBody}>
-                {form.sets.map((row, index) => (
-                  <div key={row.key} style={modal.tableRow}>
-                    <div style={modal.setCell}>
-                      <span style={modal.setIndex}>{row.round}</span>
-                      <span style={modal.setText}>{roundLabel(row.round)}</span>
+            <div style={modal.sectionTitle}>Sets Log</div>
+
+            <div style={modal.rowsWrap}>
+              {form.sets.map((row, index) => (
+                <div key={row.key} style={modal.setCard}>
+                  <div style={modal.setCardHeader}>
+                    <div>
+                      <div style={modal.setCardTitle}>Set {row.round}</div>
+                      <div style={modal.setCardSub}>{roundLabel(row.round)}</div>
                     </div>
 
-                    <div style={modal.inputCell}>
+                    <button
+                      type="button"
+                      style={row.done ? modal.checkBtnDone : modal.checkBtn}
+                      onClick={() => toggleSetDone(index)}
+                    >
+                      {row.done ? "Done" : "Mark Done"}
+                    </button>
+                  </div>
+
+                  <div style={modal.inputGrid}>
+                    <div style={modal.field}>
+                      <label style={modal.fieldLabel}>Weight (kg)</label>
                       <input
                         type="number"
                         min="0"
                         step="0.01"
                         value={row.weight}
                         onChange={(e) => updateSetRow(index, "weight", e.target.value)}
-                        placeholder="-- kg"
+                        placeholder="Enter weight"
                         style={modal.metricInput}
                       />
                     </div>
 
-                    <div style={modal.inputCell}>
+                    <div style={modal.field}>
+                      <label style={modal.fieldLabel}>Reps</label>
                       <input
                         type="number"
                         min="0"
                         value={row.reps}
                         onChange={(e) => updateSetRow(index, "reps", e.target.value)}
-                        placeholder="--"
+                        placeholder="Enter reps"
                         style={modal.metricInput}
                       />
                     </div>
-
-                    <div style={modal.checkCell}>
-                      <button
-                        type="button"
-                        style={row.done ? modal.checkBtnDone : modal.checkBtn}
-                        onClick={() => toggleSetDone(index)}
-                      >
-                        {row.done ? "✓" : ""}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                <div style={modal.addSetRow}>
-                  <div style={modal.nextSetCell}>
-                    <span style={modal.nextSetIcon}>＋</span>
-                    <span style={modal.nextSetText}>Next Set</span>
-                  </div>
-
-                  <div style={modal.ghostMetric}>-- kg</div>
-                  <div style={modal.ghostMetric}>--</div>
-
-                  <div style={modal.addSetAction}>
-                    <button type="button" style={modal.addSetBtn} onClick={addSetRow}>
-                      Add Set
-                    </button>
                   </div>
                 </div>
-              </div>
+              ))}
+            </div>
+
+            <div style={modal.addSetInline}>
+              <button type="button" style={modal.addSetBtn} onClick={addSetRow}>
+                Add Set
+              </button>
             </div>
 
             <div style={modal.noteField}>
@@ -932,43 +889,45 @@ const exerciseList = {
 
 const exerciseCard = {
   wrap: {
+    width: "100%",
     display: "grid",
-    gridTemplateColumns: "320px 1fr",
     gap: 16,
-    padding: 16,
-    borderRadius: 24,
+    padding: 22,
+    borderRadius: 28,
     overflow: "hidden",
     border: `1px solid ${theme.colors.border}`,
     background: "rgba(255,255,255,.78)",
     transition: "all .22s ease",
     boxShadow: theme.shadow.soft,
+    boxSizing: "border-box",
   },
-  visualCol: {
+  topSection: {
     display: "grid",
-    gap: 12,
-    alignContent: "start",
+    gridTemplateColumns: "220px minmax(0, 1fr)",
+    gap: 18,
+    alignItems: "stretch",
   },
-  logCol: {
+  mediaCol: {
     minWidth: 0,
   },
-  left: {
-    width: "100%",
-    height: 210,
-    borderRadius: 20,
-    overflow: "hidden",
-    background: "rgba(255,255,255,.68)",
-    border: `1px solid ${theme.colors.border}`,
-    flexShrink: 0,
+  contentCol: {
+    display: "grid",
+    gap: 14,
+    minWidth: 0,
+    alignContent: "start",
   },
   image: {
     width: "100%",
-    height: "100%",
+    height: 220,
     objectFit: "cover",
     display: "block",
+    borderRadius: 20,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.68)",
   },
   placeholder: {
     width: "100%",
-    height: "100%",
+    height: 220,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -976,6 +935,8 @@ const exerciseCard = {
     gap: 8,
     color: theme.colors.textDim,
     background: "linear-gradient(135deg, rgba(255,255,255,.65), rgba(245,240,248,.95))",
+    borderRadius: 20,
+    border: `1px solid ${theme.colors.border}`,
   },
   placeholderIcon: {
     fontSize: 24,
@@ -996,14 +957,15 @@ const exerciseCard = {
   },
   exerciseName: {
     margin: 0,
-    fontSize: 22,
+    fontSize: 30,
     fontWeight: 800,
     color: theme.colors.textStrong,
-    lineHeight: 1.2,
+    lineHeight: 1.15,
+    textTransform: "lowercase",
   },
   coachNote: {
-    padding: "10px 12px",
-    borderRadius: 14,
+    padding: "12px 14px",
+    borderRadius: 16,
     border: `1px solid ${theme.colors.border}`,
     background: "rgba(255,255,255,.72)",
     color: theme.colors.textDim,
@@ -1014,6 +976,22 @@ const exerciseCard = {
     color: theme.colors.textStrong,
     fontWeight: 700,
   },
+  actionsRow: {
+    display: "flex",
+    justifyContent: "stretch",
+  },
+  logBtn: {
+    width: "100%",
+    padding: "14px 18px",
+    borderRadius: 18,
+    border: "none",
+    background: theme.gradients.primary,
+    color: "#4a2d00",
+    fontWeight: 800,
+    cursor: "pointer",
+    boxShadow: theme.shadow.button,
+    fontSize: 15,
+  },
 };
 
 const metaRow = {
@@ -1022,7 +1000,7 @@ const metaRow = {
     alignItems: "center",
     gap: 10,
     flexWrap: "wrap",
-    marginTop: 8,
+    marginTop: 10,
   },
   target: {
     display: "inline-flex",
@@ -1081,12 +1059,12 @@ const difficulty = {
 const stats = {
   wrap: {
     display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(90px, 1fr))",
-    gap: 10,
+    gridTemplateColumns: "repeat(3, minmax(120px, 1fr))",
+    gap: 12,
   },
   item: {
-    padding: "12px 12px",
-    borderRadius: 14,
+    padding: "14px 14px",
+    borderRadius: 16,
     border: `1px solid ${theme.colors.border}`,
     background: "rgba(255,255,255,.72)",
     display: "grid",
@@ -1103,185 +1081,45 @@ const stats = {
   value: {
     color: theme.colors.textStrong,
     fontWeight: 800,
-    fontSize: 15,
+    fontSize: 18,
   },
 };
 
-const logTable = {
+const logSummary = {
   wrap: {
-    padding: 18,
-    borderRadius: 28,
-    background:
-      "linear-gradient(180deg, rgba(255,255,255,.78), rgba(247,242,250,.92))",
-    border: `1px solid ${theme.colors.border}`,
-    boxShadow: "0 18px 42px rgba(98,78,133,.10)",
     display: "grid",
-    gap: 14,
+    gap: 12,
+    padding: 16,
+    borderRadius: 22,
+    border: `1px solid ${theme.colors.border}`,
+    background: "linear-gradient(180deg, rgba(255,255,255,.64), rgba(247,242,250,.84))",
+    boxShadow: "0 18px 42px rgba(98,78,133,.08)",
   },
-  topBar: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, minmax(120px, 1fr))",
     gap: 12,
   },
-  logPill: {
-    display: "inline-flex",
-    alignItems: "center",
-    padding: "8px 14px",
-    borderRadius: 999,
-    background: "rgba(122,92,207,.10)",
-    border: "1px solid rgba(122,92,207,.18)",
-    color: theme.colors.accent,
-    fontWeight: 700,
-    fontSize: 13,
-  },
-  editBtn: {
-    padding: "8px 14px",
-    borderRadius: 14,
+  box: {
+    padding: "14px 12px",
+    borderRadius: 16,
+    background: "rgba(255,255,255,.76)",
     border: `1px solid ${theme.colors.border}`,
-    background: "rgba(255,255,255,.75)",
-    color: theme.colors.textStrong,
-    fontWeight: 700,
-    cursor: "pointer",
-    boxShadow: theme.shadow.soft,
-  },
-  exerciseTitle: {
-    fontSize: 22,
-    fontWeight: 800,
-    color: theme.colors.textStrong,
-  },
-  exerciseSub: {
-    color: theme.colors.textDim,
-    fontSize: 14,
-    marginTop: -6,
-  },
-  tableShell: {
-    borderRadius: 26,
-    border: `1px solid rgba(99,78,133,.10)`,
-    background: "rgba(255,255,255,.54)",
-    overflow: "hidden",
-  },
-  headerRow: {
     display: "grid",
-    gridTemplateColumns: "2.2fr 1.1fr 1.1fr .6fr",
-    background: "rgba(255,255,255,.38)",
-    borderBottom: `1px solid ${theme.colors.border}`,
+    gap: 8,
+    minHeight: 82,
   },
-  row: {
-    display: "grid",
-    gridTemplateColumns: "2.2fr 1.1fr 1.1fr .6fr",
-    borderBottom: `1px solid ${theme.colors.border}`,
-  },
-  addRow: {
-    display: "grid",
-    gridTemplateColumns: "2.2fr 1.1fr 1.1fr .8fr",
-    background: "rgba(255,255,255,.34)",
-  },
-  headerCell: {
-    padding: "14px 16px",
-    fontWeight: 700,
-    color: theme.colors.textDim,
-    fontSize: 16,
-  },
-  cell: {
-    padding: "12px 16px",
-    display: "flex",
-    alignItems: "center",
-    minHeight: 72,
-  },
-  setCol: {
-    gap: 12,
-  },
-  weightCol: {
-    justifyContent: "center",
-  },
-  repsCol: {
-    justifyContent: "center",
-  },
-  checkCol: {
-    justifyContent: "center",
-  },
-  setIndex: {
-    width: 28,
-    color: theme.colors.textDim,
-    fontWeight: 700,
-    fontSize: 18,
-    flexShrink: 0,
-  },
-  setLabel: {
-    fontSize: 18,
-    fontWeight: 700,
-    color: theme.colors.textStrong,
-  },
-  metricPill: {
-    minWidth: 130,
-    padding: "12px 18px",
-    borderRadius: 999,
-    background: "rgba(122,92,207,.10)",
-    color: theme.colors.accent,
-    fontWeight: 800,
-    fontSize: 16,
-    textAlign: "center",
-  },
-  metricGhost: {
-    minWidth: 130,
-    padding: "12px 18px",
-    borderRadius: 999,
-    border: "1.5px dashed rgba(122,92,207,.18)",
+  label: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
     color: theme.colors.textFaint,
     fontWeight: 700,
-    fontSize: 16,
-    textAlign: "center",
-    background: "rgba(255,255,255,.28)",
   },
-  checkDone: {
-    width: 42,
-    height: 42,
-    borderRadius: 999,
-    display: "grid",
-    placeItems: "center",
-    background: "rgba(111,207,151,.14)",
-    border: "1px solid rgba(111,207,151,.24)",
-    color: "#3d8b5d",
-    fontWeight: 900,
-    fontSize: 22,
-  },
-  checkIdle: {
-    width: 42,
-    height: 42,
-    borderRadius: 999,
-    display: "grid",
-    placeItems: "center",
-    background: "rgba(255,255,255,.65)",
-    border: `1px solid ${theme.colors.border}`,
-  },
-  nextSetIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 999,
-    display: "grid",
-    placeItems: "center",
-    background: "rgba(122,92,207,.10)",
-    border: "1px solid rgba(122,92,207,.18)",
-    color: theme.colors.accent,
+  value: {
+    fontSize: 18,
     fontWeight: 800,
-    fontSize: 18,
-  },
-  nextSetLabel: {
-    fontSize: 18,
-    fontWeight: 700,
     color: theme.colors.textStrong,
-  },
-  addBtn: {
-    padding: "12px 18px",
-    borderRadius: 999,
-    border: "none",
-    background: theme.gradients.primary,
-    color: "#4a2d00",
-    fontWeight: 800,
-    cursor: "pointer",
-    boxShadow: theme.shadow.button,
-    whiteSpace: "nowrap",
   },
   noteBox: {
     padding: "12px 14px",
@@ -1295,6 +1133,23 @@ const logTable = {
   noteLabel: {
     color: theme.colors.textStrong,
     fontWeight: 700,
+  },
+  emptyWrap: {
+    padding: "16px 18px",
+    borderRadius: 20,
+    border: `1px dashed rgba(122,92,207,.20)`,
+    background: "rgba(255,255,255,.42)",
+    display: "grid",
+    gap: 6,
+  },
+  emptyTitle: {
+    fontWeight: 800,
+    color: theme.colors.textStrong,
+    fontSize: 15,
+  },
+  emptyText: {
+    color: theme.colors.textDim,
+    fontSize: 13,
   },
 };
 
@@ -1311,7 +1166,9 @@ const modal = {
   },
   box: {
     width: "100%",
-    maxWidth: 820,
+    maxWidth: 920,
+    maxHeight: "calc(100vh - 40px)",
+    overflowY: "auto",
     borderRadius: theme.radius.lg,
     background: "rgba(255,255,255,.86)",
     border: `1px solid ${theme.colors.border}`,
@@ -1319,6 +1176,7 @@ const modal = {
     padding: 20,
     backdropFilter: "blur(20px)",
     color: theme.colors.text,
+    boxSizing: "border-box",
   },
   topPillRow: {
     display: "flex",
@@ -1357,155 +1215,124 @@ const modal = {
     color: theme.colors.textDim,
     fontSize: 13,
   },
-  tableWrap: {
-    borderRadius: 28,
-    overflow: "hidden",
-    border: `1px solid ${theme.colors.border}`,
-    background: "rgba(255,255,255,.58)",
-  },
-  tableHead: {
+  metaCards: {
     display: "grid",
-    gridTemplateColumns: "2.2fr 1.1fr 1.1fr .7fr",
-    padding: "0",
-    borderBottom: `1px solid ${theme.colors.border}`,
-    background: "rgba(255,255,255,.32)",
-  },
-  headCellSet: {
-    padding: "14px 18px",
-    fontWeight: 700,
-    color: theme.colors.textDim,
-    fontSize: 18,
-  },
-  headCell: {
-    padding: "14px 18px",
-    fontWeight: 700,
-    color: theme.colors.textDim,
-    fontSize: 18,
-    textAlign: "center",
-  },
-  headCellIcon: {
-    padding: "14px 18px",
-  },
-  tableBody: {
-    display: "grid",
-  },
-  tableRow: {
-    display: "grid",
-    gridTemplateColumns: "2.2fr 1.1fr 1.1fr .7fr",
-    borderBottom: `1px solid ${theme.colors.border}`,
-    minHeight: 78,
-  },
-  setCell: {
-    display: "flex",
-    alignItems: "center",
+    gridTemplateColumns: "repeat(4, minmax(120px, 1fr))",
     gap: 12,
-    padding: "12px 18px",
+    marginBottom: 18,
   },
-  setIndex: {
-    width: 28,
-    color: theme.colors.textDim,
-    fontWeight: 700,
-    fontSize: 18,
-    flexShrink: 0,
+  metaCard: {
+    padding: "14px 14px",
+    borderRadius: 18,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.72)",
+    boxShadow: theme.shadow.soft,
+    display: "grid",
+    gap: 8,
   },
-  setText: {
-    fontSize: 18,
+  metaLabel: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
+    color: theme.colors.textFaint,
     fontWeight: 700,
+  },
+  metaValue: {
+    fontSize: 16,
+    fontWeight: 800,
     color: theme.colors.textStrong,
   },
-  inputCell: {
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
+    marginBottom: 12,
+  },
+  rowsWrap: {
+    display: "grid",
+    gap: 12,
+  },
+  setCard: {
+    padding: 16,
+    borderRadius: 22,
+    border: `1px solid ${theme.colors.border}`,
+    background: "rgba(255,255,255,.62)",
+    boxShadow: theme.shadow.soft,
+    display: "grid",
+    gap: 14,
+  },
+  setCardHeader: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    padding: "10px 14px",
+    justifyContent: "space-between",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  setCardTitle: {
+    fontSize: 18,
+    fontWeight: 800,
+    color: theme.colors.textStrong,
+  },
+  setCardSub: {
+    marginTop: 4,
+    color: theme.colors.textDim,
+    fontSize: 13,
+  },
+  inputGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: 12,
+  },
+  field: {
+    display: "grid",
+    gap: 8,
+  },
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: theme.colors.textDim,
+    letterSpacing: 0.4,
   },
   metricInput: {
     width: "100%",
-    maxWidth: 140,
-    padding: "12px 16px",
-    borderRadius: 999,
+    padding: "13px 16px",
+    borderRadius: 16,
     border: `1px solid ${theme.colors.border}`,
     background: "rgba(122,92,207,.08)",
     color: theme.colors.textStrong,
     outline: "none",
     fontSize: 16,
     fontWeight: 700,
-    textAlign: "center",
     boxSizing: "border-box",
   },
-  checkCell: {
-    display: "grid",
-    placeItems: "center",
-    padding: "10px",
-  },
   checkBtn: {
-    width: 42,
+    minWidth: 104,
     height: 42,
+    padding: "0 14px",
     borderRadius: 999,
     border: `1px solid ${theme.colors.border}`,
     background: "rgba(255,255,255,.7)",
     color: theme.colors.textDim,
     cursor: "pointer",
     fontWeight: 800,
-    fontSize: 18,
+    fontSize: 14,
   },
   checkBtnDone: {
-    width: 42,
+    minWidth: 104,
     height: 42,
+    padding: "0 14px",
     borderRadius: 999,
     border: "1px solid rgba(111,207,151,.24)",
     background: "rgba(111,207,151,.14)",
     color: "#3d8b5d",
     cursor: "pointer",
     fontWeight: 900,
-    fontSize: 18,
+    fontSize: 14,
   },
-  addSetRow: {
-    display: "grid",
-    gridTemplateColumns: "2.2fr 1.1fr 1.1fr .9fr",
-    minHeight: 84,
-    background: "rgba(255,255,255,.26)",
-  },
-  nextSetCell: {
+  addSetInline: {
     display: "flex",
-    alignItems: "center",
-    gap: 12,
-    padding: "14px 18px",
-  },
-  nextSetIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 999,
-    display: "grid",
-    placeItems: "center",
-    background: "rgba(122,92,207,.10)",
-    border: "1px solid rgba(122,92,207,.18)",
-    color: theme.colors.accent,
-    fontWeight: 800,
-    fontSize: 18,
-    flexShrink: 0,
-  },
-  nextSetText: {
-    fontSize: 18,
-    fontWeight: 700,
-    color: theme.colors.textStrong,
-  },
-  ghostMetric: {
-    margin: "auto",
-    minWidth: 130,
-    padding: "12px 16px",
-    borderRadius: 999,
-    border: "1.5px dashed rgba(122,92,207,.18)",
-    color: theme.colors.textFaint,
-    fontWeight: 700,
-    fontSize: 16,
-    textAlign: "center",
-    background: "rgba(255,255,255,.28)",
-  },
-  addSetAction: {
-    display: "grid",
-    placeItems: "center",
-    padding: "10px 14px",
+    justifyContent: "center",
+    marginTop: 16,
   },
   addSetBtn: {
     padding: "12px 20px",
@@ -1519,7 +1346,7 @@ const modal = {
     whiteSpace: "nowrap",
   },
   noteField: {
-    marginTop: 16,
+    marginTop: 18,
     display: "grid",
     gap: 8,
   },
