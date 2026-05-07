@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { theme, ui } from "../theme/uiTheme";
 
-export default function Unauthorized() {
+export default function NotFound() {
   return (
     <div style={s.page}>
       <div style={ui.bgGrid} aria-hidden="true" />
@@ -9,13 +9,13 @@ export default function Unauthorized() {
       <div style={ui.glowBottom} aria-hidden="true" />
 
       <div style={s.card}>
-        <div style={s.badge}>403</div>
+        <div style={s.badge}>404</div>
 
-        <h1 style={s.title}>Unauthorized</h1>
+        <h1 style={s.title}>Page Not Found</h1>
 
         <p style={s.text}>
-          You do not have permission to access this page.
-          Please contact the administrator if you think this is a mistake.
+          The page you are trying to access does not exist,
+          may have been moved, or the URL is incorrect.
         </p>
 
         <div style={s.actions}>
@@ -66,9 +66,9 @@ const s = {
     fontWeight: 900,
     fontSize: 26,
     letterSpacing: "-0.03em",
-    color: "#7a1f1f",
-    background: theme.gradients.accent,
-    boxShadow: theme.shadow.glow,
+    color: "#5b3a00",
+    background: theme.gradients.primary,
+    boxShadow: theme.shadow.button,
   },
 
   title: {
@@ -103,10 +103,10 @@ const s = {
     padding: "13px 22px",
     borderRadius: theme.radius.pill,
     textDecoration: "none",
-    background: theme.gradients.accent,
-    color: "white",
+    background: theme.gradients.primary,
+    color: "#4a2d00",
     fontWeight: 800,
-    boxShadow: theme.shadow.glow,
+    boxShadow: theme.shadow.button,
     transition: theme.motion.base,
   },
 
