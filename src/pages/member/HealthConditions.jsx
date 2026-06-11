@@ -16,8 +16,12 @@ export default function HealthConditions() {
   });
 
   const [items, setItems] = useState([]);
+
   const [blocked, setBlocked] = useState([]);
   const [warnings, setWarnings] = useState([]);
+
+  const [blockedMeals, setBlockedMeals] = useState([]);
+  const [mealWarnings, setMealWarnings] = useState([]);
 
   const [loadingSave, setLoadingSave] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(false);
@@ -29,7 +33,11 @@ export default function HealthConditions() {
     return form.type && form.name.trim().length > 0 && form.severity && !loadingSave;
   }, [form, loadingSave]);
 
-  const hasResults = blocked.length > 0 || warnings.length > 0;
+  const hasResults =
+    blocked.length > 0 ||
+    warnings.length > 0 ||
+    blockedMeals.length > 0 ||
+    mealWarnings.length > 0;
 
   const getImageUrl = (path) => {
     if (!path) return null;
@@ -105,13 +113,23 @@ export default function HealthConditions() {
 
     try {
       const res = await api.post("/member/health-conditions/check", {});
+
+      console.log("Health check response:", res.data);
+
       setBlocked(res.data?.blocked_exercises || []);
       setWarnings(res.data?.warnings || []);
+
+      setBlockedMeals(res.data?.blocked_meals || []);
+      setMealWarnings(res.data?.meal_warnings || []);
+
       setAnimKey((k) => k + 1);
     } catch (e) {
       console.error(e);
+
       setBlocked([]);
       setWarnings([]);
+      setBlockedMeals([]);
+      setMealWarnings([]);
     } finally {
       setLoadingCheck(false);
     }
@@ -120,7 +138,102 @@ export default function HealthConditions() {
   const resetResults = () => {
     setBlocked([]);
     setWarnings([]);
+    setBlockedMeals([]);
+    setMealWarnings([]);
     setAnimKey((k) => k + 1);
+  };
+
+  const renderSafetyList = (list, options) => {
+    const {
+      emptyTitle,
+      emptySub,
+      tagStyle,
+      tagText,
+      keyPrefix,
+    } = options;
+
+    if (list.length === 0) {
+      return (
+        <div style={empty.box}>
+          <div style={empty.title}>{emptyTitle}</div>
+          <div style={empty.sub}>{emptySub}</div>
+        </div>
+      );
+    }
+
+    return (
+      <div style={exerciseList.wrap}>
+        {list.map((x, idx) => {
+          const imageSrc = getImageUrl(x.image);
+          const itemId = x.exercise_id || x.meal_id || idx;
+
+          return (
+            <div
+              key={`${keyPrefix}-${itemId}-${idx}`}
+              style={exerciseCard.wrap}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-3px)";
+                e.currentTarget.style.border = `1px solid ${
+                  theme.colors.borderSoft || theme.colors.border
+                }`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.border = `1px solid ${theme.colors.border}`;
+              }}
+            >
+              <div style={exerciseCard.left}>
+                {imageSrc ? (
+                  <img
+                    src={imageSrc}
+                    alt={x.name || "Item"}
+                    style={exerciseCard.image}
+                  />
+                ) : (
+                  <div style={exerciseCard.placeholder}>
+                    <span style={exerciseCard.placeholderIcon}>
+                      {keyPrefix.includes("meal") ? "🍽️" : "🏋️"}
+                    </span>
+                    <span style={exerciseCard.placeholderText}>No image</span>
+                  </div>
+                )}
+              </div>
+
+              <div style={exerciseCard.right}>
+                <div style={exerciseCard.topRow}>
+                  <div style={exerciseCard.titleCol}>
+                    <h4 style={exerciseCard.exerciseName}>{x.name ?? "-"}</h4>
+
+                    <div style={metaRow.wrap}>
+                      <span style={tagStyle}>{tagText}</span>
+
+                      {x.matched_condition ? (
+                        <span style={metaRow.target}>
+                          Condition: {x.matched_condition}
+                        </span>
+                      ) : null}
+
+                      {x.matched_keyword ? (
+                        <span style={metaRow.target}>
+                          Match: {x.matched_keyword}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+
+                {x.reason ? (
+                  <div style={exerciseCard.reasonBox}>
+                    <span style={exerciseCard.reasonLabel}>Reason</span>
+                    <span style={exerciseCard.reasonText}>{x.reason}</span>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -136,7 +249,8 @@ export default function HealthConditions() {
               <h2 style={page.title}>Health Conditions</h2>
               <div style={page.subtitle}>
                 Add your injury, allergy, or condition, save it to your profile,
-                then check which exercises are blocked or require caution.
+                then check which exercises or meals are blocked or require
+                caution.
               </div>
             </div>
             <div style={page.badge}>Safety Check</div>
@@ -162,13 +276,13 @@ export default function HealthConditions() {
             </div>
 
             <label style={{ ...formBox.label, marginTop: 16 }}>
-              Condition / Injury Name
+              Condition / Injury / Allergy Name
             </label>
             <input
               style={formBox.input}
               value={form.name}
               onChange={(e) => onChange("name", e.target.value)}
-              placeholder="Examples: knee injury, shoulder pain, lower back pain..."
+              placeholder="Examples: knee injury, shoulder pain, back pain, lactose..."
             />
 
             <label style={{ ...formBox.label, marginTop: 16 }}>Severity</label>
@@ -214,13 +328,10 @@ export default function HealthConditions() {
                 disabled={loadingCheck}
                 onClick={checkExercises}
               >
-                {loadingCheck ? "Checking..." : "Check Exercises"}
+                {loadingCheck ? "Checking..." : "Check Safety"}
               </button>
 
-              <button
-                style={formBox.secondary(false)}
-                onClick={resetResults}
-              >
+              <button style={formBox.secondary(false)} onClick={resetResults}>
                 Reset Results
               </button>
             </div>
@@ -276,9 +387,7 @@ export default function HealthConditions() {
                     </div>
 
                     {item.notes ? (
-                      <div style={savedCard.notes}>
-                        {item.notes}
-                      </div>
+                      <div style={savedCard.notes}>{item.notes}</div>
                     ) : null}
                   </div>
                 ))}
@@ -295,169 +404,75 @@ export default function HealthConditions() {
                 <div style={section.count}>{blocked.length}</div>
               </div>
 
-              {blocked.length === 0 ? (
-                <div style={empty.box}>
-                  <div style={empty.title}>No blocked exercises found.</div>
-                  <div style={empty.sub}>
-                    Save your conditions, then click Check Exercises.
-                  </div>
-                </div>
-              ) : (
-                <div style={exerciseList.wrap}>
-                  {blocked.map((x, idx) => {
-                    const imageSrc = getImageUrl(x.image);
-
-                    return (
-                      <div
-                        key={`${x.exercise_id}-${idx}`}
-                        style={exerciseCard.wrap}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = "translateY(-3px)";
-                          e.currentTarget.style.border = `1px solid ${theme.colors.borderSoft || theme.colors.border}`;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = "translateY(0)";
-                          e.currentTarget.style.border = `1px solid ${theme.colors.border}`;
-                        }}
-                      >
-                        <div style={exerciseCard.left}>
-                          {imageSrc ? (
-                            <img
-                              src={imageSrc}
-                              alt={x.name || "Exercise"}
-                              style={exerciseCard.image}
-                            />
-                          ) : (
-                            <div style={exerciseCard.placeholder}>
-                              <span style={exerciseCard.placeholderIcon}>🏋️</span>
-                              <span style={exerciseCard.placeholderText}>No image</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div style={exerciseCard.right}>
-                          <div style={exerciseCard.topRow}>
-                            <div style={exerciseCard.titleCol}>
-                              <h4 style={exerciseCard.exerciseName}>{x.name ?? "-"}</h4>
-
-                              <div style={metaRow.wrap}>
-                                <span style={severityTag.blocked}>BLOCKED</span>
-                                {x.matched_condition ? (
-                                  <span style={metaRow.target}>
-                                    Condition: {x.matched_condition}
-                                  </span>
-                                ) : null}
-                                {x.matched_keyword ? (
-                                  <span style={metaRow.target}>
-                                    Match: {x.matched_keyword}
-                                  </span>
-                                ) : null}
-                              </div>
-                            </div>
-                          </div>
-
-                          {x.reason ? (
-                            <div style={exerciseCard.reasonBox}>
-                              <span style={exerciseCard.reasonLabel}>Reason</span>
-                              <span style={exerciseCard.reasonText}>{x.reason}</span>
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              {renderSafetyList(blocked, {
+                emptyTitle: "No blocked exercises found.",
+                emptySub: "Save your conditions, then click Check Safety.",
+                tagStyle: severityTag.blocked,
+                tagText: "BLOCKED",
+                keyPrefix: "blocked-exercise",
+              })}
             </div>
 
             <div style={{ height: 14 }} />
 
             <div style={section.wrap}>
               <div style={section.head}>
-                <div style={section.title}>Warnings</div>
+                <div style={section.title}>Exercise Warnings</div>
                 <div style={section.pillWarn}>Caution</div>
                 <div style={section.line} />
                 <div style={section.count}>{warnings.length}</div>
               </div>
 
-              {warnings.length === 0 ? (
-                <div style={empty.box}>
-                  <div style={empty.title}>No warnings found.</div>
-                  <div style={empty.sub}>
-                    You’re good to go based on the current saved conditions.
-                  </div>
-                </div>
-              ) : (
-                <div style={exerciseList.wrap}>
-                  {warnings.map((x, idx) => {
-                    const imageSrc = getImageUrl(x.image);
+              {renderSafetyList(warnings, {
+                emptyTitle: "No exercise warnings found.",
+                emptySub: "You’re good to go based on the current saved conditions.",
+                tagStyle: severityTag.warning,
+                tagText: "WARNING",
+                keyPrefix: "warning-exercise",
+              })}
+            </div>
 
-                    return (
-                      <div
-                        key={`${x.exercise_id}-${idx}`}
-                        style={exerciseCard.wrap}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = "translateY(-3px)";
-                          e.currentTarget.style.border = `1px solid ${theme.colors.borderSoft || theme.colors.border}`;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = "translateY(0)";
-                          e.currentTarget.style.border = `1px solid ${theme.colors.border}`;
-                        }}
-                      >
-                        <div style={exerciseCard.left}>
-                          {imageSrc ? (
-                            <img
-                              src={imageSrc}
-                              alt={x.name || "Exercise"}
-                              style={exerciseCard.image}
-                            />
-                          ) : (
-                            <div style={exerciseCard.placeholder}>
-                              <span style={exerciseCard.placeholderIcon}>🏋️</span>
-                              <span style={exerciseCard.placeholderText}>No image</span>
-                            </div>
-                          )}
-                        </div>
+            <div style={{ height: 14 }} />
 
-                        <div style={exerciseCard.right}>
-                          <div style={exerciseCard.topRow}>
-                            <div style={exerciseCard.titleCol}>
-                              <h4 style={exerciseCard.exerciseName}>{x.name ?? "-"}</h4>
+            <div style={section.wrap}>
+              <div style={section.head}>
+                <div style={section.title}>Blocked Meals</div>
+                <div style={section.pillBlocked}>Strict</div>
+                <div style={section.line} />
+                <div style={section.count}>{blockedMeals.length}</div>
+              </div>
 
-                              <div style={metaRow.wrap}>
-                                <span style={severityTag.warning}>WARNING</span>
-                                {x.matched_condition ? (
-                                  <span style={metaRow.target}>
-                                    Condition: {x.matched_condition}
-                                  </span>
-                                ) : null}
-                                {x.matched_keyword ? (
-                                  <span style={metaRow.target}>
-                                    Match: {x.matched_keyword}
-                                  </span>
-                                ) : null}
-                              </div>
-                            </div>
-                          </div>
+              {renderSafetyList(blockedMeals, {
+                emptyTitle: "No blocked meals found.",
+                emptySub: "Save your allergies or conditions, then click Check Safety.",
+                tagStyle: severityTag.blocked,
+                tagText: "BLOCKED MEAL",
+                keyPrefix: "blocked-meal",
+              })}
+            </div>
 
-                          {x.reason ? (
-                            <div style={exerciseCard.reasonBox}>
-                              <span style={exerciseCard.reasonLabel}>Reason</span>
-                              <span style={exerciseCard.reasonText}>{x.reason}</span>
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+            <div style={{ height: 14 }} />
+
+            <div style={section.wrap}>
+              <div style={section.head}>
+                <div style={section.title}>Meal Warnings</div>
+                <div style={section.pillWarn}>Caution</div>
+                <div style={section.line} />
+                <div style={section.count}>{mealWarnings.length}</div>
+              </div>
+
+              {renderSafetyList(mealWarnings, {
+                emptyTitle: "No meal warnings found.",
+                emptySub: "You’re good to go based on the current saved conditions.",
+                tagStyle: severityTag.warning,
+                tagText: "MEAL WARNING",
+                keyPrefix: "meal-warning",
+              })}
             </div>
 
             {!hasResults && !loadingCheck ? (
               <div style={{ ...page.note, marginTop: 14 }}>
-                No results yet — save conditions, then click <b>Check Exercises</b>.
+                No results yet — save conditions, then click <b>Check Safety</b>.
               </div>
             ) : null}
           </div>
@@ -694,7 +709,6 @@ const section = {
   },
 };
 
-
 const empty = {
   box: {
     padding: 14,
@@ -843,7 +857,8 @@ const exerciseCard = {
     flexDirection: "column",
     gap: 8,
     color: theme.colors.textDim,
-    background: "linear-gradient(135deg, rgba(255,255,255,.65), rgba(245,240,248,.95))",
+    background:
+      "linear-gradient(135deg, rgba(255,255,255,.65), rgba(245,240,248,.95))",
   },
   placeholderIcon: {
     fontSize: 24,

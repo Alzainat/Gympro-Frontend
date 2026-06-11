@@ -26,6 +26,8 @@ const TIERS = [
   },
 ];
 
+const CARD_METHODS = ["credit_card", "debit_card"];
+
 export default function Payments() {
   const navigate = useNavigate();
 
@@ -48,14 +50,18 @@ export default function Payments() {
   const [method, setMethod] = useState("cash");
 
   // demo card
-  const [card, setCard] = useState({ name: "", number: "", exp: "", cvc: "" });
+  const [card, setCard] = useState({
+    name: "",
+    number: "",
+    exp: "",
+    cvc: "",
+  });
 
   const selectedPlan = useMemo(
     () => TIERS.find((p) => p.tier === selectedTier),
     [selectedTier]
   );
 
-  // ✅ السعر النهائي من الباك إذا موجود، وإلا fallback من الواجهة
   const finalPrice = useMemo(() => {
     if (!selectedTier) return 0;
     const fromApi = plansMap?.[selectedTier]?.price;
@@ -63,12 +69,13 @@ export default function Payments() {
     return selectedPlan?.price ?? 0;
   }, [plansMap, selectedTier, selectedPlan]);
 
-  // ✅ هل الخطة المختارة موجودة فعلاً من الباك؟
   const isSelectedPlanAvailable = useMemo(() => {
     if (!goal) return false;
     if (!plansMap) return false;
     return !!plansMap[selectedTier];
   }, [goal, plansMap, selectedTier]);
+
+  const needsCard = CARD_METHODS.includes(method);
 
   const closeCheckout = () => {
     if (loading) return;
@@ -79,7 +86,6 @@ export default function Payments() {
     setMsg("");
     setSelectedTier(tier);
 
-    // reset checkout state
     setGoal("");
     setPlansMap(null);
     setPlansLoading(false);
@@ -90,7 +96,6 @@ export default function Payments() {
     setOpen(true);
   };
 
-  // ✅ fetch plans for a goal (for price + validation)
   const fetchPlansForGoal = async (g) => {
     setPlansLoading(true);
     setPlansMap(null);
@@ -98,7 +103,6 @@ export default function Payments() {
     try {
       const res = await api.get("/member/plans", { params: { goal: g } });
 
-      // expected: { plans: { bronze:{price,plan_key}, silver:{...}, gold:{...} } }
       const map = res?.data?.plans;
 
       if (!map || !map.bronze || !map.silver || !map.gold) {
@@ -124,6 +128,80 @@ export default function Payments() {
     await fetchPlansForGoal(g);
   };
 
+  // ✅ name: capital letters only
+  const handleCardName = (value) => {
+    const formatted = value
+      .toUpperCase()
+      .replace(/[^A-Z ]/g, "")
+      .replace(/\s+/g, " ")
+      .trimStart();
+
+    setCard((prev) => ({ ...prev, name: formatted }));
+  };
+
+  // ✅ card number: only 14 digits
+  const handleCardNumber = (value) => {
+    const formatted = value.replace(/\D/g, "").slice(0, 14);
+    setCard((prev) => ({ ...prev, number: formatted }));
+  };
+
+  // ✅ expiry date: MM/YY
+  const handleExpiryDate = (value) => {
+    let digits = value.replace(/\D/g, "").slice(0, 4);
+
+    if (digits.length >= 3) {
+      digits = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    }
+
+    setCard((prev) => ({ ...prev, exp: digits }));
+  };
+
+  // ✅ cvc: only 3 digits
+  const handleCvc = (value) => {
+    const formatted = value.replace(/\D/g, "").slice(0, 3);
+    setCard((prev) => ({ ...prev, cvc: formatted }));
+  };
+
+  const validateCardDetails = () => {
+    const name = card.name.trim();
+
+    if (!name || !/^[A-Z]+(?: [A-Z]+)*$/.test(name)) {
+      return "Name on card must be CAPITAL LETTERS only.";
+    }
+
+    if (!/^\d{14}$/.test(card.number)) {
+      return "Card number must be exactly 14 digits.";
+    }
+
+    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(card.exp)) {
+      return "Expiry date must be in MM/YY format.";
+    }
+
+    const [monthText, yearText] = card.exp.split("/");
+    const month = Number(monthText);
+    const year = 2000 + Number(yearText);
+
+    const today = new Date();
+    const currentDate = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+
+    // آخر يوم من شهر انتهاء البطاقة
+    const cardExpiryLastDay = new Date(year, month, 0);
+
+    if (cardExpiryLastDay < currentDate) {
+      return "Card is expired.";
+    }
+
+    if (!/^\d{3}$/.test(card.cvc)) {
+      return "CVC must be exactly 3 digits.";
+    }
+
+    return "";
+  };
+
   const pay = async () => {
     if (!selectedTier) return;
 
@@ -137,22 +215,21 @@ export default function Payments() {
       return;
     }
 
-    // ✅ منع الدفع إذا الخطط ما انحملت من الباك
     if (!plansMap) {
       setMsg("❌ لا يمكن إتمام الدفع لأن بيانات الخطة غير موجودة في قاعدة البيانات.");
       return;
     }
 
-    // ✅ منع الدفع إذا الباقة المختارة غير موجودة بالخطة
     if (!plansMap[selectedTier]) {
       setMsg("❌ الخطة المختارة غير موجودة في قاعدة البيانات.");
       return;
     }
 
-    const needsCard = method !== "cash";
     if (needsCard) {
-      if (!card.name || !card.number || !card.exp || !card.cvc) {
-        setMsg("❌ Please fill card details.");
+      const cardError = validateCardDetails();
+
+      if (cardError) {
+        setMsg(`❌ ${cardError}`);
         return;
       }
     }
@@ -165,6 +242,15 @@ export default function Payments() {
         goal,
         plan_key: selectedTier,
         payment_method: method,
+
+        ...(needsCard
+          ? {
+              card_holder_name: card.name.trim(),
+              card_number: card.number,
+              expiry_date: card.exp,
+              cvc: card.cvc,
+            }
+          : {}),
       });
 
       setMsg("✅ Payment successful! Your workouts & meals are now available.");
@@ -172,7 +258,12 @@ export default function Payments() {
       navigate("/member/workouts");
     } catch (e) {
       const data = e?.response?.data;
-      setMsg(data?.message || "❌ Payment failed");
+
+      const firstValidationError = data?.errors
+        ? Object.values(data.errors).flat()[0]
+        : null;
+
+      setMsg(firstValidationError || data?.message || "❌ Payment failed");
     } finally {
       setLoading(false);
     }
@@ -323,14 +414,16 @@ export default function Payments() {
                     style={modal.input}
                     placeholder="Name on card"
                     value={card.name}
-                    onChange={(e) => setCard({ ...card, name: e.target.value })}
+                    onChange={(e) => handleCardName(e.target.value)}
                   />
 
                   <input
                     style={modal.input}
                     placeholder="Card number"
                     value={card.number}
-                    onChange={(e) => setCard({ ...card, number: e.target.value })}
+                    onChange={(e) => handleCardNumber(e.target.value)}
+                    inputMode="numeric"
+                    maxLength={14}
                   />
 
                   <div style={{ display: "flex", gap: 10 }}>
@@ -338,13 +431,18 @@ export default function Payments() {
                       style={modal.input}
                       placeholder="MM/YY"
                       value={card.exp}
-                      onChange={(e) => setCard({ ...card, exp: e.target.value })}
+                      onChange={(e) => handleExpiryDate(e.target.value)}
+                      inputMode="numeric"
+                      maxLength={5}
                     />
+
                     <input
                       style={modal.input}
                       placeholder="CVC"
                       value={card.cvc}
-                      onChange={(e) => setCard({ ...card, cvc: e.target.value })}
+                      onChange={(e) => handleCvc(e.target.value)}
+                      inputMode="numeric"
+                      maxLength={3}
                     />
                   </div>
 
@@ -519,7 +617,6 @@ const styles = {
     transition: theme.motion.base,
   }),
 };
-
 
 const modal = {
   backdrop: {
